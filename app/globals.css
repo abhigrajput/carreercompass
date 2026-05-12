@@ -1,0 +1,112 @@
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+}
+
+@layer base {
+  .theme {
+    --font-heading: var(--font-syne);
+    --font-sans: var(--font-outfit);
+  }
+  :root {
+    --background: #080814;
+    --foreground: #f0f0f0;
+    --surface: #12121f;
+    --card: #12121f;
+    --card-foreground: #f0f0f0;
+    --popover: #12121f;
+    --popover-foreground: #f0f0f0;
+    --primary: #ff6b35;
+    --primary-foreground: #080814;
+    --secondary: #1a1a2e;
+    --secondary-foreground: #f0f0f0;
+    --muted: #2a2a3d;
+    --muted-foreground: #a8a8b8;
+    --accent: #ffd60a;
+    --accent-foreground: #080814;
+    --destructive: oklch(0.577 0.245 27.325);
+    --border: rgba(255, 255, 255, 0.08);
+    --input: rgba(255, 255, 255, 0.12);
+    --ring: #ff6b35;
+    --brand: #ff6b35;
+    --success: #06d6a0;
+    --radius: 16px;
+    --sidebar: #12121f;
+    --sidebar-foreground: #f0f0f0;
+    --sidebar-primary: #ff6b35;
+    --sidebar-primary-foreground: #080814;
+    --sidebar-accent: #1a1a2e;
+    --sidebar-accent-foreground: #f0f0f0;
+    --sidebar-border: rgba(255, 255, 255, 0.08);
+    --sidebar-ring: #ff6b35;
+  }
+  .dark {
+    --background: #080814;
+    --foreground: #f0f0f0;
+    --surface: #12121f;
+    --card: #12121f;
+    --card-foreground: #f0f0f0;
+    --popover: #12121f;
+    --popover-foreground: #f0f0f0;
+    --primary: #ff6b35;
+    --primary-foreground: #080814;
+    --secondary: #1a1a2e;
+    --secondary-foreground: #f0f0f0;
+    --muted: #2a2a3d;
+    --muted-foreground: #a8a8b8;
+    --accent: #ffd60a;
+    --accent-foreground: #080814;
+    --destructive: oklch(0.704 0.191 22.216);
+    --border: rgba(255, 255, 255, 0.08);
+    --input: rgba(255, 255, 255, 0.12);
+    --ring: #ff6b35;
+    --brand: #ff6b35;
+    --success: #06d6a0;
+    --sidebar: #12121f;
+    --sidebar-foreground: #f0f0f0;
+    --sidebar-primary: #ff6b35;
+    --sidebar-primary-foreground: #080814;
+    --sidebar-accent: #1a1a2e;
+    --sidebar-accent-foreground: #f0f0f0;
+    --sidebar-border: rgba(255, 255, 255, 0.08);
+    --sidebar-ring: #ff6b35;
+  }
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground antialiased;
+  }
+  html {
+    @apply font-sans;
+  }
+}
+
+@media print {
+  body {
+    background: #fff !important;
+    color: #111 !important;
+  }
+
+  header.print\:hidden,
+  .print\:hidden {
+    display: none !important;
+  }
+
+  .roadmap-print-root {
+    background: #fff !important;
+    color: #111 !important;
+    border-color: rgba(0, 0, 0, 0.12) !important;
+  }
+
+  .roadmap-print-root * {
+    color: inherit !important;
+  }
+}

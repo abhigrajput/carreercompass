@@ -1,0 +1,360 @@
+{
+  "appName": "CareerCompass Karnataka",
+  "tagline": "Find Your Path",
+  "nav": {
+    "home": "Home",
+    "dashboard": "Dashboard",
+    "onboarding": "Start free",
+    "explore": "Explore",
+    "chat": "AI advisor",
+    "games": "Games",
+    "roadmap": "Roadmap",
+    "colleges": "Colleges",
+    "parent": "Parent",
+    "scholarships": "Scholarships",
+    "exams": "Exams",
+    "leaderboard": "Leaderboard",
+    "profile": "Profile",
+    "login": "Login",
+    "logout": "Logout",
+    "about": "About",
+    "contact": "Contact",
+    "pricing": "Pricing"
+  },
+  "landing": {
+    "hero": {
+      "line1": "Find Your Path",
+      "line2Kn": "ನಿಮ್ಮ ದಾರಿ ಕಂಡುಕೊಳ್ಳಿ",
+      "line3Hi": "अपना रास्ता खोजें",
+      "subtitle": "AI guidance for Class 10–12 students in Karnataka — in English, Kannada, and Hindi."
+    },
+    "cta": "Start free",
+    "stats": "8.7 lakh Karnataka students | 50+ careers | 3 cities",
+    "features": {
+      "chat": {
+        "title": "AI career chat",
+        "body": "Talk to a warm AI guide that knows Karnataka colleges and local opportunities."
+      },
+      "games": {
+        "title": "Skill games",
+        "body": "Short, scenario-based games to discover strengths — not boring MCQ sheets."
+      },
+      "colleges": {
+        "title": "College map",
+        "body": "Filter colleges by city, stream, and career with realistic CET cut-off ranges."
+      }
+    }
+  },
+  "onboarding": {
+    "title": "Create your student profile",
+    "step1": "Basics",
+    "step2": "Your goal",
+    "name": "Name",
+    "class": "Class",
+    "city": "City",
+    "language": "Language",
+    "next": "Continue",
+    "back": "Back",
+    "goalQuestion": "Do you know your career goal?",
+    "yes": "Yes",
+    "no": "Not yet",
+    "goalPlaceholder": "Type your goal in a sentence",
+    "stepLabel": "Step {{step}} of {{total}}",
+    "goExplore": "Continue to Explore",
+    "saveRoadmap": "Save & open roadmap",
+    "save": "Save & continue",
+    "referralCode": "Referral code (optional)",
+    "referralPlaceholder": "Enter a friend's code",
+    "cities": {
+      "bengaluru": "Bengaluru",
+      "mysuru": "Mysuru",
+      "hubballi": "Hubballi–Dharwad"
+    }
+  },
+  "dashboard": {
+    "welcome": "Welcome back",
+    "subtitle": "Your personalised launchpad",
+    "quickLinks": "Quick links",
+    "continueLabel": "Continue where you left off",
+    "featuredCareer": "Today's featured career",
+    "leaderboardPreview": "Leaderboard",
+    "leaderboardCta": "You are #{{rank}} in {{city}} — top 10 gets a certificate!",
+    "payments": {
+      "title": "Premium (coming soon)",
+      "body": "Razorpay payments will unlock mentor sessions and deeper analytics.",
+      "cta": "Notify me"
+    },
+    "shareParent": {
+      "title": "Share with parents",
+      "desc": "Let family see your progress with a private link.",
+      "cta": "Generate parent link",
+      "copy": "Copy link",
+      "copied": "Copied!",
+      "whatsapp": "Share on WhatsApp",
+      "needProfile": "Complete onboarding first so we can sync your student record.",
+      "noServer": "Add SUPABASE_SERVICE_ROLE_KEY to enable share links.",
+      "generateError": "Could not create link. Try again."
+    }
+  },
+  "explore": {
+    "title": "Explore careers",
+    "subtitle": "Tap a card to learn more",
+    "filters": {
+      "all": "All",
+      "tech": "Tech",
+      "medicine": "Medicine",
+      "engineering": "Engineering",
+      "creative": "Creative",
+      "government": "Government",
+      "commerce": "Commerce"
+    },
+    "badges": { "stream": "Stream" },
+    "aiDescription": "AI insight",
+    "loadingAi": "Generating a personalised overview…",
+    "errorAi": "Could not reach AI. Check your API key and try again.",
+    "testAbility": "Test my ability",
+    "roadmap": "Get my roadmap",
+    "openCareer": "View details"
+  },
+  "chat": {
+    "title": "Career advisor",
+    "subtitle": "Short, encouraging answers in your language",
+    "placeholder": "Ask anything about careers…",
+    "send": "Send",
+    "typing": "CareerCompass is typing…",
+    "quick": {
+      "math": "I like math",
+      "help": "I enjoy helping people",
+      "draw": "I love drawing"
+    },
+    "quickReplies": {
+      "r1": "I love math",
+      "r2": "I enjoy helping people",
+      "r3": "I like drawing/design",
+      "r4": "I'm good at writing",
+      "r5": "I love computers"
+    },
+    "saveError": "Could not save chat session (optional)."
+  },
+  "games": {
+    "title": "Career games",
+    "subtitle": "5 scenario questions aligned to your chosen domain",
+    "start": "Start game",
+    "next": "Next",
+    "finish": "See results",
+    "score": "You scored {{score}}/{{total}}",
+    "ctaRoadmap": "Get your personalised roadmap",
+    "pickDomain": "Pick a career from Explore or use the URL ?career=id",
+    "pickCareer": "Choose a career domain",
+    "pickSubtitle": "We'll load a short scenario game for that path.",
+    "questionProgress": "Question {{current}} of {{total}}",
+    "msg": {
+      "high": "Strong judgement — keep practising weekly!",
+      "mid": "Solid instincts — drill fundamentals a little every day.",
+      "low": "Great try — revisit basics and play another domain."
+    },
+    "noQuestions": "No questions available for this domain yet.",
+    "saving": "Saving your result…",
+    "saved": "Saved to your profile journey."
+  },
+  "roadmap": {
+    "title": "Your 90‑day roadmap",
+    "subtitle": "Built for Karnataka classrooms and real schedules",
+    "generate": "Generate roadmap",
+    "loading": "Drafting your plan with Claude…",
+    "error": "Something went wrong generating the roadmap.",
+    "whatsapp": "Share on WhatsApp",
+    "pdf": "Download / Print PDF",
+    "noCareer": "Pick a career from Explore first.",
+    "weeks": {
+      "w1_4": "Weeks 1–4",
+      "w5_8": "Weeks 5–8",
+      "w9_12": "Weeks 9–12"
+    }
+  },
+  "colleges": {
+    "title": "Karnataka college mapper",
+    "subtitle": "Filter by city, stream, and institution type",
+    "city": "City",
+    "stream": "Stream",
+    "institutionType": "Type",
+    "search": "Search by college name",
+    "showing": "Showing {{n}} of {{total}} colleges",
+    "any": "Any",
+    "cutoff": "CET rank (indicative)",
+    "cutoffRange": "CET cutoff range (all categories)",
+    "visit": "Official website",
+    "institution": {
+      "government": "Government",
+      "private": "Private",
+      "aided": "Aided"
+    },
+    "streams": {
+      "science": "Science",
+      "commerce": "Commerce",
+      "arts": "Arts"
+    },
+    "typeFilter": {
+      "any": "Any",
+      "government": "Government",
+      "private": "Private"
+    }
+  },
+  "scholarships": {
+    "title": "Scholarship finder",
+    "subtitle": "Karnataka scholarships you may qualify for",
+    "banner": "You may qualify for {{count}} scholarships",
+    "filter": "Filter by category",
+    "applyNow": "Apply Now →",
+    "deadline": "Deadline",
+    "eligibility": "Eligibility",
+    "amount": "Amount",
+    "provider": "Provider",
+    "categories": {
+      "all": "All",
+      "sc": "SC",
+      "st": "ST",
+      "obc": "OBC",
+      "girls": "Girls",
+      "merit": "Merit",
+      "sports": "Sports",
+      "minority": "Minority",
+      "bc": "BC"
+    }
+  },
+  "exams": {
+    "title": "Entrance exam guide",
+    "subtitle": "Know what to prepare for",
+    "tabs": {
+      "all": "All",
+      "science": "Science",
+      "commerce": "Commerce",
+      "any": "Any Stream"
+    },
+    "tips": "Preparation tips",
+    "fee": "Fee",
+    "month": "Exam month",
+    "website": "Official Website →"
+  },
+  "leaderboard": {
+    "title": "Leaderboard",
+    "subtitle": "Top students by points",
+    "allKarnataka": "All Karnataka",
+    "thisWeek": "This week",
+    "allTime": "All time",
+    "points": "pts",
+    "yourRank": "You are ranked #{{rank}} in {{city}}"
+  },
+  "profile": {
+    "title": "My Profile",
+    "edit": "Edit",
+    "save": "Save",
+    "cancel": "Cancel",
+    "interests": "My Career Interests",
+    "interestsEmpty": "Explore careers to build your interest list",
+    "gameScores": "My Game Scores",
+    "myRoadmap": "My Roadmap",
+    "viewRoadmap": "View roadmap →",
+    "shareParents": "Share with Parents"
+  },
+  "about": {
+    "title": "About CareerCompass",
+    "mission": "We believe every Karnataka student deserves world-class career guidance — free, in their language.",
+    "problem": "93% of students know only 7–10 careers. We want to change that.",
+    "solution": "How CareerCompass works",
+    "founder": "Built by a student, for students — KLE Institute of Technology, VTU.",
+    "partnership": "Apply for School Partnership",
+    "contact": "Contact us"
+  },
+  "contact": {
+    "title": "Contact us",
+    "subtitle": "We'd love to hear from you",
+    "name": "Your name",
+    "email": "Email address",
+    "message": "Message",
+    "role": "I am a…",
+    "roles": {
+      "student": "Student",
+      "parent": "Parent",
+      "teacher": "Teacher",
+      "admin": "School Admin"
+    },
+    "submit": "Send message",
+    "success": "Message sent! We'll get back to you soon.",
+    "error": "Could not send message. Please try again."
+  },
+  "pricing": {
+    "title": "Plans & Pricing",
+    "subtitle": "Start free. Upgrade when you need more.",
+    "free": {
+      "name": "Free",
+      "price": "₹0",
+      "features": ["Career Explorer", "1 AI chat session", "1 ability game", "College Mapper"],
+      "cta": "Current Plan"
+    },
+    "pro": {
+      "name": "Student Pro",
+      "price": "₹99/mo",
+      "badge": "Most Popular",
+      "features": ["Unlimited AI chat", "All ability games", "Roadmap generator", "Scholarship finder", "Parent dashboard", "Badges & streaks"],
+      "cta": "Upgrade to Pro"
+    },
+    "school": {
+      "name": "School Pack",
+      "price": "₹999/mo",
+      "features": ["Everything in Pro", "50 student accounts", "Teacher dashboard", "Progress reports"],
+      "cta": "Contact Us"
+    }
+  },
+  "streaks": {
+    "streak": "day streak",
+    "points": "points",
+    "badges": "Badges earned",
+    "missions": "Daily missions",
+    "missionsDone": "Come back tomorrow for new missions!",
+    "missionsProgress": "{{done}}/{{total}} missions complete"
+  },
+  "referral": {
+    "title": "Refer & Earn",
+    "desc": "Share with friends and earn 50 points per referral!",
+    "copy": "Copy Code",
+    "copied": "Copied!",
+    "count": "You have referred {{count}} friends",
+    "bonus": "earned {{points}} bonus points"
+  },
+  "parent": {
+    "title": "Parent view",
+    "intro": "This is your child's personalised plan — gentle guidance, not pressure.",
+    "explored": "Explored careers",
+    "games": "Game highlights",
+    "roadmap": "Chosen roadmap",
+    "salary": "Salary bands (indicative)",
+    "trends": "Job market snapshot",
+    "tokenMissing": "Add ?token=… to this link to view shared progress.",
+    "demo": "Demo mode: generate a parent link from the student dashboard.",
+    "invalidToken": "Link expired or invalid.",
+    "shareWhatsapp": "Share on WhatsApp",
+    "shareFamily": "Share progress with family on WhatsApp",
+    "student": "Student",
+    "roadmapsSection": "Roadmaps",
+    "noServerData": "Live data is unavailable (server not configured). This is a preview layout.",
+    "lastPlayed": "Last played",
+    "scoreLabel": "Score",
+    "roadmapSaved": "Saved roadmap",
+    "emptyGames": "No games recorded yet.",
+    "emptyInterests": "No explored careers recorded yet.",
+    "emptyRoadmaps": "No roadmap saved yet."
+  },
+  "auth": {
+    "title": "Welcome to CareerCompass",
+    "tagline": "Your AI career guide. Free. In your language.",
+    "knSubtitle": "ನಿಮ್ಮ ದಾರಿ ಕಂಡುಕೊಳ್ಳಿ",
+    "notConfigured": "Authentication is not yet configured. Add Supabase env variables to enable login."
+  },
+  "common": {
+    "loading": "Loading…",
+    "error": "Something went wrong",
+    "retry": "Retry",
+    "language": "Language"
+  }
+}
