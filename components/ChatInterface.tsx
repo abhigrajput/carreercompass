@@ -104,7 +104,7 @@ export function ChatInterface({ profile }: { profile: StudentProfile | null }) {
     setLoading(true);
 
     try {
-      const anthropicMessages = nextMessages.map((m) => ({
+      const chatMessages = nextMessages.map((m) => ({
         role: m.role,
         content: m.content,
       }));
@@ -112,7 +112,7 @@ export function ChatInterface({ profile }: { profile: StudentProfile | null }) {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          messages: anthropicMessages,
+          messages: chatMessages,
           language,
           studentName: name,
         }),
@@ -152,7 +152,7 @@ export function ChatInterface({ profile }: { profile: StudentProfile | null }) {
         </div>
         <div className="hidden rounded-full border border-[#FFD60A]/30 bg-[#FFD60A]/10 px-3 py-1 text-xs text-[#FFD60A] sm:inline-flex">
           <Sparkles className="mr-1 h-3.5 w-3.5" />
-          Claude Sonnet
+          DeepSeek AI
         </div>
       </CardHeader>
       <CardContent className="space-y-4">

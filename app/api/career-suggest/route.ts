@@ -1,10 +1,10 @@
 import { CAREERS } from "@/lib/careers";
 import { careerDisplayName } from "@/lib/career-utils";
-import { extractTextContent, getAnthropicClient } from "@/lib/claude";
+import { askDeepSeek } from "@/lib/deepseek";
 import type { LocaleCode } from "@/types";
 
 export async function POST(req: Request) {
-  if (!process.env.ANTHROPIC_API_KEY) {
+  if (!process.env.DEEPSEEK_API_KEY) {
     return Response.json({ error: "API key not configured" }, { status: 500 });
   }
 
@@ -17,11 +17,6 @@ export async function POST(req: Request) {
     const career = CAREERS.find((c) => c.id === careerId);
     if (!career) {
       return Response.json({ error: "Career not found" }, { status: 404 });
-    }
-
-    const client = getAnthropicClient();
-    if (!client) {
-      return Response.json({ error: "API key not configured" }, { status: 500 });
     }
 
     const lang = language ?? "en";
@@ -37,16 +32,12 @@ Paragraph 3: practical next 30‑day actions the student can take from home / sc
 Avoid negativity; keep sentences simple and encouraging.`;
 
     try {
-      const response = await client.messages.create({
-        model: "claude-sonnet-4-20250514",
-        max_tokens: 700,
-        messages: [{ role: "user", content: prompt }],
-      });
-
-      const text = extractTextContent(response.content);
+      const text = await askDeepSeek(
+        [{ role: "user", content: prompt }],
+      );
       return Response.json({ content: text });
     } catch (apiErr) {
-      console.error("Anthropic API error:", apiErr);
+      console.error("DeepSeek API error:", apiErr);
       const msg =
         apiErr instanceof Error ? apiErr.message : "AI request failed. Try again.";
       return Response.json(

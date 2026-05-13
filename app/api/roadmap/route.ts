@@ -1,8 +1,8 @@
-import { extractTextContent, getAnthropicClient } from "@/lib/claude";
+import { askDeepSeek } from "@/lib/deepseek";
 import type { LocaleCode, RoadmapPayload, RoadmapPhase } from "@/types";
 
 export async function POST(req: Request) {
-  if (!process.env.ANTHROPIC_API_KEY) {
+  if (!process.env.DEEPSEEK_API_KEY) {
     return Response.json({ error: "API key not configured" }, { status: 500 });
   }
 
@@ -23,11 +23,6 @@ export async function POST(req: Request) {
     const city = body.city ?? "bengaluru";
     const lang = body.language ?? "en";
 
-    const client = getAnthropicClient();
-    if (!client) {
-      return Response.json({ error: "API key not configured" }, { status: 500 });
-    }
-
     const langLabel =
       lang === "kn" ? "Kannada" : lang === "hi" ? "Hindi" : "English";
 
@@ -45,13 +40,10 @@ Rules:
 - Mention Karnataka resources (YouTube, PU colleges, CET/NEET/JEE as relevant).`;
 
     try {
-      const response = await client.messages.create({
-        model: "claude-sonnet-4-20250514",
-        max_tokens: 900,
-        messages: [{ role: "user", content: prompt }],
-      });
+      const raw = await askDeepSeek(
+        [{ role: "user", content: prompt }],
+      );
 
-      const raw = extractTextContent(response.content);
       let roadmap: RoadmapPayload | null = null;
       try {
         const start = raw.indexOf("{");
@@ -105,7 +97,7 @@ Rules:
 
       return Response.json({ roadmap });
     } catch (apiErr) {
-      console.error("Anthropic API error:", apiErr);
+      console.error("DeepSeek API error:", apiErr);
       const msg =
         apiErr instanceof Error ? apiErr.message : "AI request failed. Try again.";
       return Response.json(
