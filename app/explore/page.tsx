@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { useTranslation } from "react-i18next";
 import { Loader2 } from "lucide-react";
 import { CareerCard } from "@/components/CareerCard";
@@ -15,7 +16,7 @@ import {
 } from "@/components/ui/dialog";
 import { CAREERS } from "@/lib/careers";
 import { careerDisplayName } from "@/lib/career-utils";
-import { loadStudentProfile } from "@/lib/student-storage";
+import { loadStudentProfile, saveStudentProfile } from "@/lib/student-storage";
 import { cn } from "@/lib/utils";
 import type { CareerItem, LocaleCode } from "@/types";
 
@@ -53,6 +54,7 @@ function matchesFilter(filter: FilterKey, career: CareerItem) {
 
 export default function ExplorePage() {
   const { t, i18n } = useTranslation("common");
+  const searchParams = useSearchParams();
   const profile = loadStudentProfile();
   const lang = (profile?.language ??
     (i18n.language as LocaleCode) ??
@@ -99,7 +101,20 @@ export default function ExplorePage() {
   const openCareer = (career: CareerItem) => {
     setActive(career);
     void loadAi(career);
+    if (profile) {
+      saveStudentProfile({ ...profile, lastCareerId: career.id });
+    }
   };
+
+  useEffect(() => {
+    const id = searchParams.get("career");
+    if (!id) return;
+    const c = CAREERS.find((x) => x.id === id);
+    if (c) {
+      openCareer(c);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- open once when query present
+  }, [searchParams]);
 
   const filters: FilterKey[] = [
     "all",

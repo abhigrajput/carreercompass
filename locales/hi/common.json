@@ -5,6 +5,8 @@
     "home": "होम",
     "dashboard": "डैशबोर्ड",
     "onboarding": "शुरू करें",
+    "startFree": "मुफ्त शुरू",
+    "tools": "टूल्स",
     "explore": "एक्सप्लोर",
     "chat": "AI सलाहकार",
     "games": "करियर खोज",
@@ -19,7 +21,11 @@
     "logout": "लॉगआउट",
     "about": "हमारे बारे में",
     "contact": "संपर्क",
-    "pricing": "मूल्य"
+    "pricing": "मूल्य",
+    "community": "कम्युनिटी",
+    "mentors": "मेंटर",
+    "timetable": "स्टडी टाइमटेबल",
+    "skillGames": "स्किल गेम्स"
   },
   "landing": {
     "hero": {
@@ -52,6 +58,8 @@
     "name": "नाम",
     "class": "कक्षा",
     "city": "शहर",
+    "schoolName": "स्कूल का नाम (वैकल्पिक)",
+    "schoolPlaceholder": "जैसे दिल्ली पब्लिक स्कूल",
     "language": "भाषा",
     "next": "आगे",
     "back": "पीछे",
@@ -118,6 +126,25 @@
       "help": "लोगों की मदद करना अच्छा लगता है",
       "draw": "मुझे ड्राइंग पसंद है"
     },
+    "quickReplies": {
+      "r1": "मुझे गणित पसंद है",
+      "r2": "लोगों की मदद करना अच्छा लगता है",
+      "r3": "डिज़ाइन पसंद है",
+      "r4": "लेखन में अच्छा हूँ",
+      "r5": "कंप्यूटर पसंद है"
+    },
+    "emotions": {
+      "confused": "उलझन",
+      "excited": "उत्साह",
+      "anxious": "चिंता",
+      "motivated": "प्रेरित",
+      "bored": "ऊब",
+      "curious": "जिज्ञासु",
+      "neutral": "संतुलित"
+    },
+    "suggestedCareer": "सुझाया गया करियर: {{name}}",
+    "voice": "आवाज़ इनपुट",
+    "voiceUnsupported": "इस ब्राउज़र में आवाज़ समर्थित नहीं।",
     "saveError": "चैट सेव नहीं हो सकी (वैकल्पिक)।"
   },
   "games": {
@@ -244,6 +271,65 @@
     "myRoadmap": "मेरा रोडमैप",
     "viewRoadmap": "रोडमैप देखें →",
     "shareParents": "अभिभावकों के साथ साझा करें"
+  },
+  "timetable": {
+    "title": "AI स्टडी टाइमटेबल",
+    "subtitle": "कर्नाटक प्रवेश की तैयारी के लिए।",
+    "formTitle": "आपके लक्ष्य",
+    "targetCareer": "लक्ष्य करियर",
+    "exam": "परीक्षा",
+    "examDate": "परीक्षा तिथि",
+    "hours": "प्रति दिन घंटे",
+    "weak": "कमज़ोर विषय",
+    "strong": "मजबूत विषय",
+    "generate": "टाइमटेबल बनाएँ",
+    "hint": "AI उपलब्ध हो तो उपयोग होगा।",
+    "downloadPdf": "PDF प्रिंट",
+    "shareWhatsapp": "WhatsApp पर साझा करें",
+    "week": "सप्ताह {{n}}"
+  },
+  "skillGames": {
+    "title": "स्किल गेम्स",
+    "subtitle": "मेडिसिन, इंजीनियरिंग, टेक।",
+    "medicine": "मेडिसिन सिम्युलेटर",
+    "engineering": "इंजीनियरिंग चैलेंज",
+    "tech": "टेक बिल्डर",
+    "tapToStart": "शुरू करने के लिए टैप करें",
+    "streak": "स्ट्रीक",
+    "points": "अंक",
+    "finalTitle": "परिणाम",
+    "scoreLine": "{{pts}} अंक · सटीकता {{pct}}%",
+    "challengeFriend": "दोस्त को चुनौती दें",
+    "playAgain": "फिर खेलें",
+    "youWon": "आपने {{name}} को हराया!",
+    "youLost": "{{name}} अभी भी आगे हैं — फिर कोशिश करें!"
+  },
+  "community": {
+    "title": "छात्र समुदाय",
+    "subtitle": "प्रश्न, जीत, सलाह।",
+    "placeholder": "280 अक्षरों में…",
+    "post": "पोस्ट",
+    "posted": "पोस्ट हो गया!",
+    "tooLong": "280 से कम रखें।",
+    "loginLike": "लाइक के लिए ऑनबोर्डिंग पूरी करें।",
+    "reply": "जवाब",
+    "replySoon": "जवाब जल्द ही!",
+    "tabAll": "सभी",
+    "tabQuestions": "प्रश्न",
+    "tabAchievements": "उपलब्धियाँ",
+    "tabCity": "मेरा शहर",
+    "careerTagOptional": "करियर टैग (वैकल्पिक)"
+  },
+  "mentors": {
+    "title": "मेंटर वेटलिस्ट",
+    "subtitle": "30 मिनट कॉल (डेमो)।",
+    "becomeMentor": "मेंटर बनें",
+    "filterAll": "सभी",
+    "book": "कॉल बुक करें",
+    "bookTitle": "बुकिंग अनुरोध",
+    "message": "आप क्या चाहते हैं?",
+    "submit": "भेजें",
+    "bookingSuccess": "अनुरोध भेज दिया गया!"
   },
   "auth": {
     "title": "CareerCompass में आपका स्वागत है",

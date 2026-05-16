@@ -110,3 +110,35 @@
     color: inherit !important;
   }
 }
+
+@layer utilities {
+  @keyframes cc-skeleton-pulse {
+    0%,
+    100% {
+      background-color: #1a1a2e;
+    }
+    50% {
+      background-color: #2a2a3e;
+    }
+  }
+  .cc-skeleton {
+    animation: cc-skeleton-pulse 1.4s ease-in-out infinite;
+  }
+  .cc-page-enter {
+    animation: cc-page-enter 0.3s ease forwards;
+  }
+  @keyframes cc-page-enter {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+}
+
+button:active {
+  transform: scale(0.97);
+}

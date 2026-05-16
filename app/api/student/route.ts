@@ -13,6 +13,8 @@ export async function POST(req: Request) {
       email?: string | null;
       referred_by?: string | null;
       auth_id?: string | null;
+      school_name?: string | null;
+      schoolName?: string | null;
     };
 
     const admin = createServiceRoleClient();
@@ -43,6 +45,7 @@ export async function POST(req: Request) {
         email: body.email ?? null,
         referred_by: body.referred_by ?? null,
         auth_id: body.auth_id ?? null,
+        school_name: body.school_name ?? body.schoolName ?? null,
       })
       .select()
       .maybeSingle();

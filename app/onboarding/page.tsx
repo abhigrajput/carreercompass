@@ -30,6 +30,7 @@ export default function OnboardingPage() {
   const [stream, setStream] = useState<StreamSlug | "">("");
   const [submitting, setSubmitting] = useState(false);
   const [referralCode, setReferralCode] = useState("");
+  const [schoolName, setSchoolName] = useState("");
 
   const baseProfile = (): StudentProfile => ({
     name: name.trim(),
@@ -38,6 +39,7 @@ export default function OnboardingPage() {
     language,
     stream: stream || null,
     knownGoal: goal.trim() || null,
+    schoolName: schoolName.trim() || null,
   });
 
   const persistRemote = async (
@@ -49,6 +51,7 @@ export default function OnboardingPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           ...profile,
+          school_name: profile.schoolName ?? null,
           referred_by: referralCode.trim() || null,
         }),
       });
@@ -151,6 +154,16 @@ export default function OnboardingPage() {
                   <option value="mysuru">{t("onboarding.cities.mysuru")}</option>
                   <option value="hubballi">{t("onboarding.cities.hubballi")}</option>
                 </select>
+              </label>
+
+              <label className="space-y-2 text-sm text-white/80">
+                <span>{t("onboarding.schoolName")}</span>
+                <Input
+                  value={schoolName}
+                  onChange={(e) => setSchoolName(e.target.value)}
+                  className="rounded-xl border-white/10 bg-black/30 text-white"
+                  placeholder={t("onboarding.schoolPlaceholder")}
+                />
               </label>
 
               <label className="space-y-2 text-sm text-white/80">

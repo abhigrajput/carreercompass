@@ -15,6 +15,10 @@ export interface StudentProfile {
   knownGoal?: string | null;
   stream?: StreamSlug | null;
   email?: string | null;
+  schoolName?: string | null;
+  points?: number;
+  streakDays?: number;
+  lastCareerId?: string | null;
   updatedAt?: string;
 }
 

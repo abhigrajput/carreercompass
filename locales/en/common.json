@@ -5,6 +5,8 @@
     "home": "Home",
     "dashboard": "Dashboard",
     "onboarding": "Start free",
+    "startFree": "Start Free",
+    "tools": "Tools",
     "explore": "Explore",
     "chat": "AI advisor",
     "games": "Career Discovery",
@@ -19,7 +21,11 @@
     "logout": "Logout",
     "about": "About",
     "contact": "Contact",
-    "pricing": "Pricing"
+    "pricing": "Pricing",
+    "community": "Community",
+    "mentors": "Mentors",
+    "timetable": "Study Timetable",
+    "skillGames": "Skill Games"
   },
   "landing": {
     "hero": {
@@ -52,6 +58,8 @@
     "name": "Name",
     "class": "Class",
     "city": "City",
+    "schoolName": "School name (optional)",
+    "schoolPlaceholder": "e.g. Delhi Public School Bengaluru",
     "language": "Language",
     "next": "Continue",
     "back": "Back",
@@ -94,7 +102,15 @@
       "needProfile": "Complete onboarding first so we can sync your student record.",
       "noServer": "Add SUPABASE_SERVICE_ROLE_KEY to enable share links.",
       "generateError": "Could not create link. Try again."
-    }
+    },
+    "missionsTitle": "Today's missions",
+    "pointsToday": "Points earned today",
+    "badgesShelf": "Badges",
+    "viewAllBadges": "View all {{count}} badges →",
+    "resumeCta": "Resume →",
+    "level": "Level {{n}}",
+    "dateLine": "{{date}}",
+    "dayStreak": "day streak"
   },
   "explore": {
     "title": "Explore careers",
@@ -134,6 +150,18 @@
       "r4": "I'm good at writing",
       "r5": "I love computers"
     },
+    "emotions": {
+      "confused": "Confused — simpler explanation",
+      "excited": "Excited — matching your energy",
+      "anxious": "Anxious — reassurance first",
+      "motivated": "Motivated — next action steps",
+      "bored": "Bored — engaging question",
+      "curious": "Curious — deeper dive",
+      "neutral": "Balanced tone"
+    },
+    "suggestedCareer": "Suggested career match: {{name}}",
+    "voice": "Voice input",
+    "voiceUnsupported": "Voice input is not supported in this browser.",
     "saveError": "Could not save chat session (optional)."
   },
   "games": {
@@ -356,6 +384,65 @@
     "emptyGames": "No games recorded yet.",
     "emptyInterests": "No explored careers recorded yet.",
     "emptyRoadmaps": "No roadmap saved yet."
+  },
+  "timetable": {
+    "title": "AI Study Timetable",
+    "subtitle": "Generate a week-by-week plan for Karnataka entrance prep.",
+    "formTitle": "Your targets",
+    "targetCareer": "Target career",
+    "exam": "Target exam",
+    "examDate": "Exam date",
+    "hours": "Hours per day",
+    "weak": "Weak subjects",
+    "strong": "Strong subjects",
+    "generate": "Generate timetable",
+    "hint": "Uses AI when configured; otherwise a sample grid is shown.",
+    "downloadPdf": "Download as PDF",
+    "shareWhatsapp": "Share on WhatsApp",
+    "week": "Week {{n}}"
+  },
+  "skillGames": {
+    "title": "Skill Games",
+    "subtitle": "Scenario games for Medicine, Engineering, and Tech.",
+    "medicine": "Medicine Simulator",
+    "engineering": "Engineering Challenge",
+    "tech": "Tech Builder",
+    "tapToStart": "Tap a card to start",
+    "streak": "Streak",
+    "points": "Points",
+    "finalTitle": "Results",
+    "scoreLine": "Score {{pts}} pts · Accuracy ~{{pct}}%",
+    "challengeFriend": "Challenge a friend",
+    "playAgain": "Play again",
+    "youWon": "You beat {{name}}!",
+    "youLost": "{{name}} still leads — try again!"
+  },
+  "community": {
+    "title": "Student community",
+    "subtitle": "Questions, wins, and advice from Karnataka students.",
+    "placeholder": "Share in 280 characters…",
+    "post": "Post",
+    "posted": "Posted!",
+    "tooLong": "Keep it under 280 characters.",
+    "loginLike": "Complete onboarding to like posts.",
+    "reply": "Reply",
+    "replySoon": "Replies coming soon!",
+    "tabAll": "All",
+    "tabQuestions": "Questions",
+    "tabAchievements": "Achievements",
+    "tabCity": "My city",
+    "careerTagOptional": "Career tag (optional)"
+  },
+  "mentors": {
+    "title": "Mentor waitlist",
+    "subtitle": "Book a 30-minute call with Karnataka professionals (demo flow).",
+    "becomeMentor": "Become a mentor",
+    "filterAll": "All domains",
+    "book": "Book 30-min call",
+    "bookTitle": "Booking request",
+    "message": "What do you want to discuss?",
+    "submit": "Send request",
+    "bookingSuccess": "Booking request sent! Mentor will confirm within 24 hours."
   },
   "auth": {
     "title": "Welcome to CareerCompass",

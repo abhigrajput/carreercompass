@@ -8,11 +8,17 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: BASE, lastModified: now },
     { url: `${BASE}/explore`, lastModified: now },
     { url: `${BASE}/games`, lastModified: now },
+    { url: `${BASE}/skill-games`, lastModified: now },
+    { url: `${BASE}/timetable`, lastModified: now },
+    { url: `${BASE}/community`, lastModified: now },
+    { url: `${BASE}/mentors`, lastModified: now },
     { url: `${BASE}/colleges`, lastModified: now },
     { url: `${BASE}/scholarships`, lastModified: now },
     { url: `${BASE}/exams`, lastModified: now },
     { url: `${BASE}/leaderboard`, lastModified: now },
     { url: `${BASE}/about`, lastModified: now },
     { url: `${BASE}/pricing`, lastModified: now },
+    { url: `${BASE}/chat`, lastModified: now },
+    { url: `${BASE}/dashboard`, lastModified: now },
   ];
 }

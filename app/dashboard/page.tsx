@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import { useTranslation } from "react-i18next";
 import {
@@ -13,29 +13,45 @@ import {
   MessageCircle,
   Trophy,
   FileText,
+  CalendarDays,
+  Target,
+  Users,
 } from "lucide-react";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { loadStudentProfile } from "@/lib/student-storage";
 import { CAREERS } from "@/lib/careers";
 import { cn } from "@/lib/utils";
-import StreakCard from "@/components/StreakCard";
 import DailyMissions from "@/components/DailyMissions";
 import { generateDailyMissions } from "@/lib/missions";
 import type { Mission } from "@/lib/missions";
+import { updateStreak } from "@/lib/streak";
 
 const quickLinks = [
   { href: "/explore", key: "explore", icon: BookOpen },
-  { href: "/chat", key: "chat", icon: MessageCircle },
   { href: "/games", key: "games", icon: Gamepad2 },
-  { href: "/colleges", key: "colleges", icon: MapPinned },
+  { href: "/chat", key: "chat", icon: MessageCircle },
+  { href: "/timetable", key: "timetable", icon: CalendarDays },
   { href: "/scholarships", key: "scholarships", icon: GraduationCap },
+  { href: "/colleges", key: "colleges", icon: MapPinned },
+  { href: "/skill-games", key: "skillGames", icon: Target },
+  { href: "/community", key: "community", icon: Users },
   { href: "/exams", key: "exams", icon: FileText },
 ];
 
 export default function DashboardPage() {
   const { t } = useTranslation("common");
   const profile = loadStudentProfile();
+  const [streakDays, setStreakDays] = useState(profile?.streakDays ?? 0);
+  const points = profile?.points ?? 0;
+  const level = Math.floor(points / 500) + 1;
+
+  useEffect(() => {
+    if (!profile?.id) return;
+    void updateStreak(profile.id).then((r) => {
+      setStreakDays(r.streakDays);
+    });
+  }, [profile?.id]);
 
   const baseUrl =
     process.env.NEXT_PUBLIC_APP_URL?.replace(/\/$/, "") ??
@@ -113,10 +129,19 @@ export default function DashboardPage() {
 
   const greeting =
     profile?.language === "kn"
-      ? `ನಮಸ್ಕಾರ, ${profile?.name ?? ""}! 🙏`
+      ? `ನಮಸ್ಕಾರ ${profile?.name ?? ""}! 🙏`
       : profile?.language === "hi"
-        ? `नमस्ते, ${profile?.name ?? ""}! 🙏`
+        ? `नमस्ते ${profile?.name ?? ""}! 🙏`
         : `${t("dashboard.welcome")}, ${profile?.name ?? ""}! 🙏`;
+
+  const dateLine = new Intl.DateTimeFormat(
+    profile?.language === "kn" ? "kn-IN" : profile?.language === "hi" ? "hi-IN" : "en-IN",
+    { weekday: "long", month: "short", day: "numeric" },
+  ).format(new Date());
+
+  const lastCareer = profile?.lastCareerId
+    ? CAREERS.find((c) => c.id === profile.lastCareerId)
+    : null;
 
   return (
     <div className="mx-auto max-w-6xl px-4 pb-16 pt-24">
@@ -128,12 +153,67 @@ export default function DashboardPage() {
         <h1 className="font-display text-3xl text-white sm:text-4xl">
           {greeting}
         </h1>
+        <p className="mt-1 text-sm text-white/55">{dateLine}</p>
+        <div className="mt-3 flex flex-wrap gap-4 text-sm text-white/75">
+          <span className={streakDays > 0 ? "animate-pulse" : ""}>
+            🔥 {streakDays} {t("dashboard.dayStreak")}
+          </span>
+          <span>⭐ {points} pts</span>
+          <span>{t("dashboard.level", { n: level })}</span>
+        </div>
         <p className="mt-2 text-white/65">{t("dashboard.subtitle")}</p>
       </motion.div>
 
       <div className="mb-8 grid gap-6 lg:grid-cols-2">
-        <StreakCard streakDays={3} points={120} badges={["explorer", "top-scorer"]} />
+        <Card className="rounded-2xl border border-[#FF6B35]/25 bg-[#12121F]">
+          <CardHeader>
+            <CardTitle className="font-display text-lg text-white">
+              {t("dashboard.continueLabel")}
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="flex items-center justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <span className="text-3xl">{lastCareer?.icon ?? "🎯"}</span>
+              <div>
+                <p className="font-medium text-white">
+                  {lastCareer?.name ?? t("nav.explore")}
+                </p>
+                <p className="text-xs text-white/50">
+                  {lastCareer ? lastCareer.avgSalary : t("dashboard.subtitle")}
+                </p>
+              </div>
+            </div>
+            <Link
+              href={lastCareer ? `/explore?career=${lastCareer.id}` : "/explore"}
+              className={cn(
+                buttonVariants({ variant: "default", size: "sm" }),
+                "rounded-lg bg-[#FF6B35] text-[#080814]",
+              )}
+            >
+              {t("dashboard.resumeCta")}
+            </Link>
+          </CardContent>
+        </Card>
         <DailyMissions missions={missions} onComplete={handleMissionComplete} />
+      </div>
+
+      <div className="mb-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        {[
+          { label: "Careers explored", val: 0 },
+          { label: "Games played", val: 0 },
+          { label: "Day streak", val: streakDays, suffix: "🔥" },
+          { label: "Points", val: points, suffix: "⭐" },
+        ].map((x) => (
+          <Card key={x.label} className="rounded-2xl border-white/10 bg-[#12121F]">
+            <CardContent className="p-4">
+              <p className="text-xs uppercase tracking-wide text-white/45">{x.label}</p>
+              <p className="mt-1 font-display text-2xl text-white">
+                {x.val}
+                {x.suffix ? ` ${x.suffix}` : ""}
+              </p>
+            </CardContent>
+          </Card>
+        ))}
       </div>
 
       <div className="mb-8 grid gap-6 lg:grid-cols-2">

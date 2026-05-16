@@ -1,13 +1,15 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Send, Sparkles } from "lucide-react";
+import { Mic, MicOff, Send, Sparkles } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import type { ChatMessage, LocaleCode, StudentProfile } from "@/types";
+import { CAREERS } from "@/lib/careers";
+import { cn } from "@/lib/utils";
 
 function nowId() {
   return `${Date.now()}-${Math.random().toString(16).slice(2)}`;
@@ -23,6 +25,23 @@ function welcomeMessage(lang: LocaleCode, name: string) {
   return `Hi ${name}! I'm your CareerCompass guide. Tell me — what subjects do you enjoy most?`;
 }
 
+function cityLabel(city: StudentProfile["city"] | undefined): string {
+  if (city === "mysuru") return "Mysuru";
+  if (city === "hubballi") return "Hubballi–Dharwad";
+  if (city === "bengaluru") return "Bengaluru";
+  return "Karnataka";
+}
+
+const EMOTION_UI: Record<string, { emoji: string; labelKey: string }> = {
+  confused: { emoji: "\u{1F615}", labelKey: "chat.emotions.confused" },
+  excited: { emoji: "\u{1F525}", labelKey: "chat.emotions.excited" },
+  anxious: { emoji: "\u{1F630}", labelKey: "chat.emotions.anxious" },
+  motivated: { emoji: "\u26A1", labelKey: "chat.emotions.motivated" },
+  bored: { emoji: "\u{1F634}", labelKey: "chat.emotions.bored" },
+  curious: { emoji: "\u{1F914}", labelKey: "chat.emotions.curious" },
+  neutral: { emoji: "\u2728", labelKey: "chat.emotions.neutral" },
+};
+
 export function ChatInterface({ profile }: { profile: StudentProfile | null }) {
   const { t, i18n } = useTranslation("common");
   const language = (profile?.language ??
@@ -34,8 +53,17 @@ export function ChatInterface({ profile }: { profile: StudentProfile | null }) {
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [careersDiscussed, setCareersDiscussed] = useState<string[]>([]);
+  const [suggestedCareer, setSuggestedCareer] = useState<string | null>(null);
+  const [emotionsByMessageId, setEmotionsByMessageId] = useState<
+    Record<string, string>
+  >({});
+  const [recording, setRecording] = useState(false);
+
   const bottomRef = useRef<HTMLDivElement | null>(null);
   const welcomeSeeded = useRef(false);
+  const recognitionRef = useRef<SpeechRecognition | null>(null);
+  const silenceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -85,6 +113,58 @@ export function ChatInterface({ profile }: { profile: StudentProfile | null }) {
     t("chat.quickReplies.r5"),
   ];
 
+  const stopRecording = useCallback(() => {
+    if (silenceTimerRef.current) {
+      clearTimeout(silenceTimerRef.current);
+      silenceTimerRef.current = null;
+    }
+    try {
+      recognitionRef.current?.stop();
+    } catch {
+      /* */
+    }
+    recognitionRef.current = null;
+    setRecording(false);
+  }, []);
+
+  const startRecording = useCallback(() => {
+    if (typeof window === "undefined") return;
+    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SR) {
+      setError(t("chat.voiceUnsupported"));
+      return;
+    }
+    setError(null);
+    const rec = new SR();
+    rec.lang =
+      language === "kn" ? "kn-IN" : language === "hi" ? "hi-IN" : "en-IN";
+    rec.continuous = false;
+    rec.interimResults = false;
+    rec.maxAlternatives = 1;
+    rec.onresult = (e) => {
+      const text = e.results[0]?.[0]?.transcript ?? "";
+      if (text) setInput((prev) => (prev ? `${prev} ${text}` : text));
+      stopRecording();
+    };
+    rec.onend = () => {
+      stopRecording();
+    };
+    rec.onerror = () => {
+      stopRecording();
+    };
+    recognitionRef.current = rec;
+    setRecording(true);
+    try {
+      rec.start();
+    } catch {
+      setRecording(false);
+      return;
+    }
+    silenceTimerRef.current = setTimeout(() => {
+      stopRecording();
+    }, 5000);
+  }, [language, stopRecording, t]);
+
   const send = async (text: string) => {
     const trimmed = text.trim();
     if (!trimmed || loading) {
@@ -102,6 +182,7 @@ export function ChatInterface({ profile }: { profile: StudentProfile | null }) {
     setMessages(nextMessages);
     setInput("");
     setLoading(true);
+    setSuggestedCareer(null);
 
     try {
       const chatMessages = nextMessages.map((m) => ({
@@ -115,15 +196,32 @@ export function ChatInterface({ profile }: { profile: StudentProfile | null }) {
           messages: chatMessages,
           language,
           studentName: name,
+          city: cityLabel(profile?.city),
+          careersDiscussed,
         }),
       });
-      const data = (await res.json()) as { content?: string; error?: string };
+      const data = (await res.json()) as {
+        content?: string;
+        error?: string;
+        emotionDetected?: string;
+        suggestedCareer?: string | null;
+      };
       if (!res.ok) {
         throw new Error(data.error ?? "request_failed");
       }
       if (!data.content) {
         throw new Error(data.error ?? "empty");
       }
+      const em = data.emotionDetected ?? "neutral";
+      setEmotionsByMessageId((m) => ({ ...m, [userMsg.id]: em }));
+
+      if (data.suggestedCareer) {
+        setSuggestedCareer(data.suggestedCareer);
+        setCareersDiscussed((c) =>
+          c.includes(data.suggestedCareer!) ? c : [...c, data.suggestedCareer!],
+        );
+      }
+
       const assistantMsg: ChatMessage = {
         id: nowId(),
         role: "assistant",
@@ -141,6 +239,10 @@ export function ChatInterface({ profile }: { profile: StudentProfile | null }) {
     }
   };
 
+  const suggestedCareerName =
+    suggestedCareer &&
+    CAREERS.find((c) => c.id === suggestedCareer)?.name;
+
   return (
     <Card className="rounded-2xl border-white/10 bg-[#12121F] shadow-glow">
       <CardHeader className="flex flex-row items-center justify-between gap-3">
@@ -156,6 +258,12 @@ export function ChatInterface({ profile }: { profile: StudentProfile | null }) {
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
+        {suggestedCareer && suggestedCareerName ? (
+          <div className="rounded-xl border border-[#FF6B35]/30 bg-[#FF6B35]/10 px-3 py-2 text-sm text-white/90">
+            {t("chat.suggestedCareer", { name: suggestedCareerName })}
+          </div>
+        ) : null}
+
         <div className="h-[420px] space-y-3 overflow-y-auto rounded-2xl border border-white/10 bg-black/30 p-4">
           {messages.length === 0 && !profile?.name ? (
             <p className="text-sm text-white/60">
@@ -173,20 +281,35 @@ export function ChatInterface({ profile }: { profile: StudentProfile | null }) {
                 layout
                 initial={{ opacity: 0, y: 8 }}
                 animate={{ opacity: 1, y: 0 }}
-                className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}
+                className={`flex flex-col ${m.role === "user" ? "items-end" : "items-start"}`}
               >
                 <div
-                  className={`max-w-[85%] rounded-2xl px-4 py-3 text-sm leading-relaxed ${
+                  className={cn(
+                    "max-w-[85%] rounded-2xl px-4 py-3 text-sm leading-relaxed",
                     m.role === "user"
                       ? "bg-[#FF6B35] text-[#080814]"
-                      : "border border-white/10 bg-white/5 text-white"
-                  }`}
+                      : "border border-white/10 bg-white/5 text-white",
+                  )}
                 >
                   <p>{m.content}</p>
-                  <p className="mt-2 text-[10px] uppercase tracking-wide text-white/40">
+                  <p
+                    className={cn(
+                      "mt-2 text-[10px] uppercase tracking-wide",
+                      m.role === "user" ? "text-[#080814]/50" : "text-white/40",
+                    )}
+                  >
                     {new Date(m.createdAt).toLocaleTimeString()}
                   </p>
                 </div>
+                {m.role === "user" && emotionsByMessageId[m.id] ? (
+                  <p className="mt-1 text-xs text-white/50">
+                    {(() => {
+                      const em = emotionsByMessageId[m.id];
+                      const ui = EMOTION_UI[em] ?? EMOTION_UI.neutral;
+                      return `${ui.emoji} ${t(ui.labelKey)}`;
+                    })()}
+                  </p>
+                ) : null}
               </motion.div>
             ))}
           </AnimatePresence>
@@ -231,14 +354,41 @@ export function ChatInterface({ profile }: { profile: StudentProfile | null }) {
               }
             }}
           />
-          <Button
-            type="button"
-            className="h-[72px] rounded-xl bg-[#FF6B35] px-4 text-[#080814] hover:bg-[#ff844f]"
-            onClick={() => void send(input)}
-            disabled={loading}
-          >
-            <Send className="h-5 w-5" />
-          </Button>
+          <div className="flex flex-col gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              className={cn(
+                "h-[34px] rounded-xl border-white/15",
+                recording
+                  ? "animate-pulse border-red-500/60 bg-red-500/20 text-red-200"
+                  : "text-white hover:bg-white/10",
+              )}
+              onClick={() => {
+                if (recording) {
+                  stopRecording();
+                } else {
+                  startRecording();
+                }
+              }}
+              disabled={loading}
+              aria-label={t("chat.voice")}
+            >
+              {recording ? (
+                <MicOff className="h-5 w-5" />
+              ) : (
+                <Mic className="h-5 w-5" />
+              )}
+            </Button>
+            <Button
+              type="button"
+              className="h-[34px] flex-1 rounded-xl bg-[#FF6B35] px-3 text-[#080814] hover:bg-[#ff844f]"
+              onClick={() => void send(input)}
+              disabled={loading}
+            >
+              <Send className="h-5 w-5" />
+            </Button>
+          </div>
         </div>
       </CardContent>
     </Card>
