@@ -5,6 +5,7 @@ import "./globals.css";
 import { cn } from "@/lib/utils";
 import { AppProviders } from "@/components/AppProviders";
 import { ConditionalNavbar } from "@/components/ConditionalNavbar";
+import { ClientShell } from "@/components/ClientShell";
 
 const syne = Syne({
   subsets: ["latin"],
@@ -47,6 +48,13 @@ export const metadata: Metadata = {
     title: "CareerCompass Karnataka",
     description: "Free AI career guide for Karnataka students",
   },
+  manifest: "/manifest.json",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "black-translucent",
+    title: "CareerCompass",
+  },
+  themeColor: "#FF6B35",
 };
 
 export default function RootLayout({
@@ -67,7 +75,9 @@ export default function RootLayout({
       >
         <AppProviders>
           <ConditionalNavbar />
-          <main className="min-h-screen">{children}</main>
+          <ClientShell>
+            <main className="min-h-screen pb-20 md:pb-0">{children}</main>
+          </ClientShell>
         </AppProviders>
         {process.env.NEXT_PUBLIC_GA_ID ? (
           <GoogleAnalytics gaId={process.env.NEXT_PUBLIC_GA_ID} />

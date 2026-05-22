@@ -18,6 +18,7 @@ import {
   type SkillScenario,
 } from "@/lib/skill-games";
 import { loadStudentProfile } from "@/lib/student-storage";
+import { hapticCorrect, hapticWrong } from "@/lib/haptics";
 
 type Phase = "pick" | "play" | "result";
 
@@ -90,12 +91,14 @@ export default function SkillGamesPage() {
         : 0;
 
       if (correct) {
+        hapticCorrect();
         setStreak((s) => s + 1);
         setCorrectCount((c) => c + 1);
         setTotalPoints((p) => p + earned);
         setFloatPts(earned);
         window.setTimeout(() => setFloatPts(null), 900);
       } else {
+        hapticWrong();
         setStreak(0);
         if (explanation) {
           setWrongHold(explanation);

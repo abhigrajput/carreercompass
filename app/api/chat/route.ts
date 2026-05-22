@@ -5,6 +5,7 @@ import {
   suggestCareerFromConversation,
   type EmotionLabel,
 } from "@/lib/deepseek";
+import { clientIp, rateLimit } from "@/lib/rate-limit";
 
 function emotionGuidance(em: EmotionLabel): string {
   switch (em) {
@@ -28,6 +29,10 @@ function emotionGuidance(em: EmotionLabel): string {
 export async function POST(req: Request) {
   if (!process.env.DEEPSEEK_API_KEY) {
     return Response.json({ error: "API key not configured" }, { status: 500 });
+  }
+
+  if (!rateLimit(clientIp(req), 10, 60_000)) {
+    return Response.json({ error: "Too many requests" }, { status: 429 });
   }
 
   try {
