@@ -25,7 +25,11 @@
     "community": "ಸಮುದಾಯ",
     "mentors": "ಮಾರ್ಗದರ್ಶಕರು",
     "timetable": "ಅಧ್ಯಯನ ವೇಳಾಪಟ್ಟಿ",
-    "skillGames": "ಕೌಶಲ್ಯ ಆಟಗಳು"
+    "studyTimer": "Study Timer",
+    "skillGames": "ಕೌಶಲ್ಯ ಆಟಗಳು",
+    "compare": "ವೃತ್ತಿ ಹೋಲಿಕೆ",
+    "mockInterview": "ಮಾಕ್ ಸಂದರ್ಶನ",
+    "news": "Career News"
   },
   "landing": {
     "hero": {

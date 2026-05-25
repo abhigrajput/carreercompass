@@ -12,6 +12,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { buildSignedHeaders } from "@/lib/client-api";
 import { packForCareerDomain } from "@/lib/game-packs";
 import { cn } from "@/lib/utils";
 import type { CareerItem, StudentProfile } from "@/types";
@@ -71,9 +72,10 @@ export function GameEngine({
         if (gameTokenRef.current) {
           payload.gameToken = gameTokenRef.current;
         }
+        const headers = await buildSignedHeaders(payload);
         await fetch("/api/game-results", {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers,
           body: JSON.stringify(payload),
         });
         setSaveNote("saved");

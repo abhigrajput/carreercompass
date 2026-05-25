@@ -6,8 +6,15 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useTranslation } from "react-i18next";
 import { ArrowLeft, ArrowRight, RotateCcw, Sparkles } from "lucide-react";
 import { Button, buttonVariants } from "@/components/ui/button";
-import { loadStudentProfile } from "@/lib/student-storage";
+import { ProGate } from "@/components/ProGate";
+import { buildSignedHeaders } from "@/lib/client-api";
+import { useSwipe } from "@/lib/swipe";
+import {
+  loadStudentProfile,
+  patchStudentProfile,
+} from "@/lib/student-storage";
 import { cn } from "@/lib/utils";
+import type { HollandScoreMap, PersonalityInsights } from "@/types";
 
 /* ───── RIASEC traits ───── */
 
@@ -259,6 +266,18 @@ function calcResult(scores: Scores): string {
   return combos.find((c) => c.includes(sorted[0][0])) ?? "IS";
 }
 
+function normalizeHollandScores(scores: Scores): HollandScoreMap {
+  const maxScore = Math.max(...Object.values(scores), 1);
+  return {
+    R: Math.round((scores.R / maxScore) * 100),
+    I: Math.round((scores.I / maxScore) * 100),
+    A: Math.round((scores.A / maxScore) * 100),
+    S: Math.round((scores.S / maxScore) * 100),
+    E: Math.round((scores.E / maxScore) * 100),
+    C: Math.round((scores.C / maxScore) * 100),
+  };
+}
+
 /* ───── hero title cycling ───── */
 
 const HERO_LINES = [
@@ -286,6 +305,8 @@ export default function GamesPage() {
   const [scores, setScores] = useState<Scores>({ ...ZERO_SCORES });
   const [heroIdx, setHeroIdx] = useState(0);
   const [saved, setSaved] = useState(false);
+  const [insights, setInsights] = useState<PersonalityInsights | null>(null);
+  const [insightsLoading, setInsightsLoading] = useState(false);
 
   /* hero rotation */
   useEffect(() => {
@@ -335,28 +356,68 @@ export default function GamesPage() {
     setAnswers({});
     setScores({ ...ZERO_SCORES });
     setSaved(false);
+    setInsights(null);
+    setInsightsLoading(false);
   }, []);
 
   /* save to supabase */
   const resultKey = useMemo(() => calcResult(scores), [scores]);
   const personality = PERSONALITY_TYPES[resultKey];
+  const normalizedScores = useMemo(() => normalizeHollandScores(scores), [scores]);
+  const swipeHandlers = useSwipe(
+    selected != null ? () => void goNext() : undefined,
+    qIndex > 0 ? goBack : undefined,
+  );
 
   useEffect(() => {
     if (screen !== "results" || saved) return;
     setSaved(true);
     const profile = loadStudentProfile();
-    void fetch("/api/game-results", {
+    patchStudentProfile({
+      personalityType: personality?.name ?? null,
+      hollandScores: normalizedScores,
+    });
+    if (!profile?.authToken) return;
+    const payload = {
+      studentId: profile?.id ?? null,
+      careerDomain: resultKey,
+      score: Math.max(...Object.values(scores)),
+      totalQuestions: QUESTIONS.length,
+      correctAnswers: QUESTIONS.length,
+    };
+    void (async () => {
+      const headers = await buildSignedHeaders(payload);
+      await fetch("/api/game-results", {
+        method: "POST",
+        headers,
+        body: JSON.stringify(payload),
+      });
+    })().catch(() => {});
+  }, [normalizedScores, personality?.name, resultKey, saved, screen, scores]);
+
+  useEffect(() => {
+    if (screen !== "results" || !personality || insights || insightsLoading) return;
+
+    setInsightsLoading(true);
+    void fetch("/api/personality-insights", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        studentId: profile?.id ?? null,
-        careerDomain: resultKey,
-        score: Math.max(...Object.values(scores)),
-        totalQuestions: QUESTIONS.length,
-        correctAnswers: QUESTIONS.length,
+        personalityType: personality.name,
+        hollandScores: normalizedScores,
+        language: loadStudentProfile()?.language ?? "en",
       }),
-    }).catch(() => {});
-  }, [screen, saved, resultKey, scores]);
+    })
+      .then((res) => res.json())
+      .then((data: { insights?: PersonalityInsights }) => {
+        if (data.insights) {
+          setInsights(data.insights);
+        }
+      })
+      .finally(() => {
+        setInsightsLoading(false);
+      });
+  }, [insights, insightsLoading, normalizedScores, personality, screen]);
 
   /* max trait value for bar scaling */
   const maxTrait = Math.max(...Object.values(scores), 1);
@@ -497,6 +558,90 @@ export default function GamesPage() {
             </div>
           </div>
 
+          <div>
+            <h3 className="mb-4 font-display text-xl text-white">
+              Deep Personality Insights
+            </h3>
+            <ProGate
+              feature="full AI personality insights"
+              fallback={
+                <div className="rounded-2xl border border-[#FFD60A]/30 bg-[#FFD60A]/10 p-5 text-white/85">
+                  <p className="font-display text-lg text-white">
+                    Unlock Full Insights (Pro)
+                  </p>
+                  <p className="mt-2 text-sm text-white/70">
+                    Get deeper strengths, blind spots, study style advice, and work-environment guidance based on your Holland profile.
+                  </p>
+                  <Link
+                    href="/pricing"
+                    className="mt-4 inline-flex rounded-xl bg-[#FF6B35] px-4 py-2 text-sm font-medium text-[#080814]"
+                  >
+                    Upgrade to Pro
+                  </Link>
+                </div>
+              }
+            >
+              <div className="grid gap-4 md:grid-cols-2">
+                <div className="rounded-2xl border border-white/10 bg-[#12121F] p-5">
+                  <p className="mb-3 text-xs uppercase tracking-wide text-[#FF6B35]">
+                    Core strengths
+                  </p>
+                  <ul className="space-y-2 text-sm text-white/80">
+                    {(insights?.strengths ?? []).map((item) => (
+                      <li key={item}>• {item}</li>
+                    ))}
+                  </ul>
+                </div>
+                <div className="rounded-2xl border border-white/10 bg-[#12121F] p-5">
+                  <p className="mb-3 text-xs uppercase tracking-wide text-[#FF6B35]">
+                    Hidden weaknesses
+                  </p>
+                  <ul className="space-y-2 text-sm text-white/80">
+                    {(insights?.weaknesses ?? []).map((item) => (
+                      <li key={item}>• {item}</li>
+                    ))}
+                  </ul>
+                </div>
+                <div className="rounded-2xl border border-white/10 bg-[#12121F] p-5 md:col-span-2">
+                  <p className="mb-2 text-xs uppercase tracking-wide text-[#FF6B35]">
+                    Ideal work environment
+                  </p>
+                  <p className="text-sm text-white/80">
+                    {insightsLoading
+                      ? "Generating your insight profile..."
+                      : insights?.idealEnvironment}
+                  </p>
+                </div>
+                <div className="rounded-2xl border border-white/10 bg-[#12121F] p-5">
+                  <p className="mb-3 text-xs uppercase tracking-wide text-[#FF6B35]">
+                    Similar role models
+                  </p>
+                  <ul className="space-y-2 text-sm text-white/80">
+                    {(insights?.roleModels ?? []).map((item) => (
+                      <li key={item}>• {item}</li>
+                    ))}
+                  </ul>
+                </div>
+                <div className="rounded-2xl border border-white/10 bg-[#12121F] p-5">
+                  <p className="mb-3 text-xs uppercase tracking-wide text-[#FF6B35]">
+                    Careers to avoid
+                  </p>
+                  <ul className="space-y-2 text-sm text-white/80">
+                    {(insights?.careersToAvoid ?? []).map((item) => (
+                      <li key={item}>• {item}</li>
+                    ))}
+                  </ul>
+                </div>
+                <div className="rounded-2xl border border-white/10 bg-[#12121F] p-5 md:col-span-2">
+                  <p className="mb-2 text-xs uppercase tracking-wide text-[#FF6B35]">
+                    Best study style
+                  </p>
+                  <p className="text-sm text-white/80">{insights?.studyStyle}</p>
+                </div>
+              </div>
+            </ProGate>
+          </div>
+
           {/* Action buttons */}
           <div className="flex flex-wrap gap-3">
             <Link
@@ -562,6 +707,7 @@ export default function GamesPage() {
           exit={{ opacity: 0, x: -40 }}
           transition={{ duration: 0.3 }}
           className="space-y-5"
+          {...swipeHandlers}
         >
           {/* scene box */}
           {question.scene ? (

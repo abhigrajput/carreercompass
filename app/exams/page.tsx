@@ -13,6 +13,7 @@ import {
   User,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import ExamCountdown from "@/components/ExamCountdown";
 
 interface Exam {
   id: string;
@@ -313,6 +314,10 @@ export default function ExamsPage() {
             preparation tips
           </p>
         </motion.div>
+
+        <div className="mb-8">
+          <ExamCountdown />
+        </div>
 
         <div className="mb-6 flex flex-wrap gap-2">
           {STREAM_TABS.map((tab) => (

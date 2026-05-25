@@ -10,7 +10,10 @@ export async function POST(req: Request) {
   if (parsed instanceof Response) return parsed;
 
   try {
-    const { name, email, language, source } = parsed.data;
+    const { name, email, language, source, website } = parsed.data;
+    if (website) {
+      return Response.json({ ok: true });
+    }
 
     const admin = createServiceRoleClient();
     if (admin) {

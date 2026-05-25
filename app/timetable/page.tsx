@@ -6,6 +6,7 @@ import { motion } from "framer-motion";
 import { useTranslation } from "react-i18next";
 import { CAREERS } from "@/lib/careers";
 import { careerDisplayName } from "@/lib/career-utils";
+import { shareContent } from "@/lib/share";
 import type { LocaleCode } from "@/types";
 import { loadStudentProfile } from "@/lib/student-storage";
 import { Button } from "@/components/ui/button";
@@ -98,15 +99,16 @@ export default function TimetablePage() {
     }
   };
 
-  const shareWa = () => {
+  const shareWa = async () => {
     const url =
       typeof window !== "undefined"
         ? window.location.href
         : "https://careercompass.vercel.app/timetable";
-    const text = encodeURIComponent(
-      `I built my study timetable on CareerCompass Karnataka! ${url}`,
+    await shareContent(
+      "CareerCompass Study Timetable",
+      "I built my study timetable on CareerCompass Karnataka!",
+      url,
     );
-    window.open(`https://wa.me/?text=${text}`, "_blank");
   };
 
   return (
@@ -250,7 +252,7 @@ export default function TimetablePage() {
             <Button
               type="button"
               className="rounded-xl bg-emerald-600 text-white hover:bg-emerald-500"
-              onClick={shareWa}
+              onClick={() => void shareWa()}
             >
               {t("timetable.shareWhatsapp")}
             </Button>

@@ -7,6 +7,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { shareContent } from "@/lib/share";
 import { cn } from "@/lib/utils";
 import {
   ENGINEERING_SCENARIOS,
@@ -193,12 +194,14 @@ export default function SkillGamesPage() {
       ? `${window.location.origin}/skill-games?challenge=${gameId}&score=${totalPoints}&name=${encodeURIComponent(profile.name)}`
       : "";
 
-  const waChallenge =
-    challengeLink &&
-    gameId &&
-    `https://wa.me/?text=${encodeURIComponent(
-      `I scored ${totalPoints} in the ${gameLabel(gameId)} skill game on CareerCompass! Can you beat me? ${challengeLink}`,
-    )}`;
+  const shareChallenge = async () => {
+    if (!challengeLink || !gameId) return;
+    await shareContent(
+      "CareerCompass Skill Game Challenge",
+      `I scored ${totalPoints} in the ${gameLabel(gameId)} skill game on CareerCompass! Can you beat me?`,
+      challengeLink,
+    );
+  };
 
   const beatBanner =
     challengeScore > 0 &&
@@ -371,15 +374,14 @@ export default function SkillGamesPage() {
             </p>
             {winner ? <p className="text-[#FF6B35]">{winner}</p> : null}
             <div className="flex flex-wrap gap-3">
-              {waChallenge ? (
-                <Link
-                  href={waChallenge}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="rounded-xl bg-emerald-600 px-4 py-2 text-sm text-white"
+              {challengeLink ? (
+                <Button
+                  type="button"
+                  onClick={() => void shareChallenge()}
+                  className="rounded-xl bg-emerald-600 px-4 py-2 text-sm text-white hover:bg-emerald-500"
                 >
                   {t("skillGames.challengeFriend")}
-                </Link>
+                </Button>
               ) : null}
               <Button
                 type="button"

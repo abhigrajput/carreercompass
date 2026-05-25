@@ -19,6 +19,11 @@ export interface StudentProfile {
   points?: number;
   streakDays?: number;
   lastCareerId?: string | null;
+  careersExplored?: string[];
+  personalityType?: string | null;
+  hollandScores?: HollandScoreMap | null;
+  isPro?: boolean;
+  authToken?: string | null;
   updatedAt?: string;
 }
 
@@ -84,4 +89,42 @@ export interface GameDomainPack {
   domain: string;
   title: string;
   questions: GameQuestion[];
+}
+
+export interface HollandScoreMap {
+  R: number;
+  I: number;
+  A: number;
+  S: number;
+  E: number;
+  C: number;
+}
+
+export interface PersonalityInsights {
+  strengths: string[];
+  weaknesses: string[];
+  idealEnvironment: string;
+  roleModels: string[];
+  careersToAvoid: string[];
+  studyStyle: string;
+}
+
+export interface CareerNewsItem {
+  headline: string;
+  summary: string;
+  category: "tech" | "medical" | "government" | "startup" | "education";
+  relevantCareers: string[];
+  source: string;
+}
+
+export interface MockInterviewFeedback {
+  score: number;
+  good: string;
+  improve: string;
+}
+
+export interface MockInterviewTurn {
+  question: string;
+  answer: string;
+  feedback: MockInterviewFeedback;
 }

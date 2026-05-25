@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import { Mail, Send } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { buildSignedHeaders } from "@/lib/client-api";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 
@@ -16,6 +17,7 @@ export default function ContactPage() {
   const [email, setEmail] = useState("");
   const [message, setMessage] = useState("");
   const [role, setRole] = useState<Role>("Student");
+  const [website, setWebsite] = useState("");
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -30,10 +32,11 @@ export default function ContactPage() {
     setError(null);
     setSuccess(false);
     try {
+      const payload = { name, email, message, role, website };
       const res = await fetch("/api/contact", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, email, message, role }),
+        headers: await buildSignedHeaders(payload),
+        body: JSON.stringify(payload),
       });
       const data = (await res.json()) as { ok?: boolean; error?: string };
       if (!res.ok) {
@@ -95,6 +98,14 @@ export default function ContactPage() {
           </CardHeader>
           <CardContent>
             <form onSubmit={(e) => void handleSubmit(e)} className="space-y-5">
+              <Input
+                name="website"
+                value={website}
+                onChange={(e) => setWebsite(e.target.value)}
+                tabIndex={-1}
+                autoComplete="off"
+                className="hidden"
+              />
               <div>
                 <label className="mb-1 block text-xs text-white/50">
                   Name

@@ -26,6 +26,7 @@ export const StudentSchema = z.object({
   referred_by: z.string().max(32).optional(),
   auth_id: z.string().uuid().optional(),
   stream: z.enum(["science", "commerce", "arts"]).optional().nullable(),
+  website: z.string().max(200).optional(),
 });
 
 export const ChatMessageSchema = z.object({
@@ -39,7 +40,10 @@ export const ChatMessageSchema = z.object({
     .max(50),
   language,
   studentName: z.string().max(100).optional(),
+  studentClass: studentClass.optional(),
   city: z.string().max(50).optional(),
+  personalityType: z.string().max(120).optional(),
+  studentPoints: z.number().int().min(0).max(100000).optional(),
   careersDiscussed: z.array(z.string().max(80)).max(20).optional(),
 });
 
@@ -104,6 +108,7 @@ export const CommunityPostSchema = z
     postType: postTypeEnum.optional(),
     career_tag: z.string().max(50).optional().nullable(),
     careerTag: z.string().max(50).optional().nullable(),
+    isAnonymous: z.boolean().optional(),
   })
   .superRefine((d, ctx) => {
     if (!d.student_name && !d.studentName) {
@@ -130,6 +135,7 @@ export const CommunityPostSchema = z
     content: d.content.trim(),
     post_type: (d.post_type ?? d.postType)!,
     career_tag: d.career_tag ?? d.careerTag ?? null,
+    isAnonymous: Boolean(d.isAnonymous),
   }));
 
 export const CommunityLikeSchema = z.object({
@@ -155,6 +161,7 @@ export const SubscribeSchema = z.object({
   email: z.string().email(),
   language: language.default("en"),
   source: z.string().max(50).optional(),
+  website: z.string().max(200).optional(),
 });
 
 export const ContactSchema = z.object({
@@ -162,6 +169,7 @@ export const ContactSchema = z.object({
   email: z.string().email(),
   message: z.string().min(10).max(2000),
   role: z.enum(["Student", "Parent", "Teacher", "School Admin", "Other"]),
+  website: z.string().max(200).optional(),
 });
 
 export const PointsSchema = z.object({
@@ -169,6 +177,7 @@ export const PointsSchema = z.object({
   action: z.enum([
     "explore_career",
     "complete_game",
+    "complete_pomodoro",
     "skill_game_correct",
     "chat_message",
     "generate_roadmap",
@@ -308,6 +317,13 @@ export const ChatSessionSchema = z.object({
   studentId: z.string().uuid().optional().nullable(),
 });
 
+export const StudySessionSchema = z.object({
+  studentId: z.string().uuid().optional().nullable(),
+  subject: z.string().min(1).max(80),
+  durationMinutes: z.number().int().min(1).max(180),
+  sessionDate: z.string().max(20).optional(),
+});
+
 export const ParentTokenSchema = z.object({
   studentId: z.string().uuid(),
 });
@@ -316,6 +332,65 @@ export const NotificationPatchSchema = z.object({
   ids: z.array(z.string().uuid()).max(50).optional(),
   markAll: z.boolean().optional(),
 });
+
+export const ProCheckSchema = z.object({
+  studentId: z.string().uuid(),
+});
+
+const hollandScoreSchema = z.object({
+  R: z.number().min(0).max(100),
+  I: z.number().min(0).max(100),
+  A: z.number().min(0).max(100),
+  S: z.number().min(0).max(100),
+  E: z.number().min(0).max(100),
+  C: z.number().min(0).max(100),
+});
+
+export const PersonalityInsightsSchema = z.object({
+  personalityType: z.string().min(2).max(120),
+  hollandScores: hollandScoreSchema,
+  language,
+});
+
+export const MockInterviewQuestionSchema = z.object({
+  action: z.literal("question"),
+  careerId: z.string().max(80),
+  careerName: z.string().max(120),
+  questionNumber: z.number().int().min(1).max(5),
+  history: z
+    .array(
+      z.object({
+        question: z.string().max(500),
+        answer: z.string().max(1500),
+      }),
+    )
+    .max(5),
+  language: language.optional(),
+});
+
+export const MockInterviewFeedbackSchema = z.object({
+  action: z.literal("feedback"),
+  careerId: z.string().max(80),
+  careerName: z.string().max(120),
+  question: z.string().max(500),
+  answer: z.string().min(1).max(1500),
+  language: language.optional(),
+});
+
+export const MockInterviewSaveSchema = z.object({
+  action: z.literal("save"),
+  studentId: z.string().uuid().optional().nullable(),
+  careerId: z.string().max(80),
+  questions: z.array(z.string().max(500)).length(5),
+  answers: z.array(z.string().max(1500)).length(5),
+  scores: z.array(z.number().int().min(1).max(10)).length(5),
+});
+
+export const MockInterviewSchema = z.discriminatedUnion("action", [
+  MockInterviewQuestionSchema,
+  MockInterviewFeedbackSchema,
+  MockInterviewSaveSchema,
+]);
 
 export function mapCityForDb(
   city: z.infer<typeof citySlugOrOther>,

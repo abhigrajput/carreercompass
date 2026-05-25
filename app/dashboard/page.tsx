@@ -16,27 +16,50 @@ import {
   CalendarDays,
   Target,
   Users,
+  Briefcase,
+  Newspaper,
 } from "lucide-react";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import ExamCountdown from "@/components/ExamCountdown";
 import { loadStudentProfile } from "@/lib/student-storage";
 import { CAREERS } from "@/lib/careers";
+import { shareContent } from "@/lib/share";
 import { cn } from "@/lib/utils";
 import DailyMissions from "@/components/DailyMissions";
 import { generateDailyMissions } from "@/lib/missions";
 import type { Mission } from "@/lib/missions";
 import { updateStreak } from "@/lib/streak";
+import type { CareerNewsItem } from "@/types";
+import {
+  getChallengeStorageKey,
+  getCurrentWeekChallenge,
+} from "@/lib/weekly-challenges";
+
+type Recommendation = {
+  type: "career" | "game" | "scholarship" | "challenge";
+  title: string;
+  reason: string;
+  action: string;
+  actionUrl: string;
+  icon: string;
+  points: number;
+};
 
 const quickLinks = [
   { href: "/explore", key: "explore", icon: BookOpen },
   { href: "/games", key: "games", icon: Gamepad2 },
   { href: "/chat", key: "chat", icon: MessageCircle },
+  { href: "/study-timer", key: "studyTimer", icon: CalendarDays },
   { href: "/timetable", key: "timetable", icon: CalendarDays },
   { href: "/scholarships", key: "scholarships", icon: GraduationCap },
   { href: "/colleges", key: "colleges", icon: MapPinned },
   { href: "/skill-games", key: "skillGames", icon: Target },
   { href: "/community", key: "community", icon: Users },
   { href: "/exams", key: "exams", icon: FileText },
+  { href: "/compare", key: "compare", icon: Briefcase },
+  { href: "/mock-interview", key: "mockInterview", icon: Briefcase },
+  { href: "/news", key: "news", icon: Newspaper },
 ];
 
 export default function DashboardPage() {
@@ -45,6 +68,9 @@ export default function DashboardPage() {
   const [streakDays, setStreakDays] = useState(profile?.streakDays ?? 0);
   const points = profile?.points ?? 0;
   const level = Math.floor(points / 500) + 1;
+  const [newsItems, setNewsItems] = useState<CareerNewsItem[]>([]);
+  const [recommendations, setRecommendations] = useState<Recommendation[]>([]);
+  const [challengeCompleted, setChallengeCompleted] = useState<string[]>([]);
 
   useEffect(() => {
     if (!profile?.id) return;
@@ -52,6 +78,41 @@ export default function DashboardPage() {
       setStreakDays(r.streakDays);
     });
   }, [profile?.id]);
+
+  useEffect(() => {
+    void fetch("/api/news")
+      .then((res) => res.json())
+      .then((data: { items?: CareerNewsItem[] }) => {
+        setNewsItems((data.items ?? []).slice(0, 3));
+      })
+      .catch(() => {
+        setNewsItems([]);
+      });
+  }, []);
+
+  useEffect(() => {
+    const url = profile?.id
+      ? `/api/recommendations?studentId=${encodeURIComponent(profile.id)}`
+      : "/api/recommendations";
+
+    void fetch(url)
+      .then((res) => res.json())
+      .then((data: { recommendations?: Recommendation[] }) => {
+        setRecommendations((data.recommendations ?? []).slice(0, 4));
+      })
+      .catch(() => {
+        setRecommendations([]);
+      });
+  }, [profile?.id]);
+
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(getChallengeStorageKey());
+      setChallengeCompleted(raw ? (JSON.parse(raw) as string[]) : []);
+    } catch {
+      setChallengeCompleted([]);
+    }
+  }, []);
 
   const baseUrl =
     process.env.NEXT_PUBLIC_APP_URL?.replace(/\/$/, "") ??
@@ -71,16 +132,11 @@ export default function DashboardPage() {
     const idx = new Date().getDate() % CAREERS.length;
     return CAREERS[idx];
   }, []);
+  const weeklyChallenge = useMemo(() => getCurrentWeekChallenge(), []);
 
   const shareUrl = shareToken
     ? `${baseUrl}/parent?token=${encodeURIComponent(shareToken)}`
     : null;
-
-  const whatsappHref =
-    shareUrl &&
-    `https://wa.me/?text=${encodeURIComponent(
-      `CareerCompass — ಪಾಲಕರು ಈ ಲಿಂಕ್ ಮೂಲಕ ಪ್ರಗತಿ ನೋಡಬಹುದು: ${shareUrl}`,
-    )}`;
 
   const generateParentLink = async () => {
     if (!profile?.id) {
@@ -117,6 +173,15 @@ export default function DashboardPage() {
     } catch {
       /* */
     }
+  };
+
+  const shareParentLink = async () => {
+    if (!shareUrl) return;
+    await shareContent(
+      "CareerCompass Parent Link",
+      `CareerCompass — ಪಾಲಕರು ಈ ಲಿಂಕ್ ಮೂಲಕ ಪ್ರಗತಿ ನೋಡಬಹುದು: ${shareUrl}`,
+      shareUrl,
+    );
   };
 
   const handleMissionComplete = (missionId: string) => {
@@ -199,8 +264,8 @@ export default function DashboardPage() {
 
       <div className="mb-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {[
-          { label: "Careers explored", val: 0 },
-          { label: "Games played", val: 0 },
+          { label: "Careers explored", val: profile?.careersExplored?.length ?? 0 },
+          { label: "Games played", val: profile?.personalityType ? 1 : 0 },
           { label: "Day streak", val: streakDays, suffix: "🔥" },
           { label: "Points", val: points, suffix: "⭐" },
         ].map((x) => (
@@ -273,6 +338,118 @@ export default function DashboardPage() {
         </Card>
       </div>
 
+      <Card className="mb-8 rounded-2xl border-white/10 bg-[#12121F]">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 font-display text-lg text-white">
+            <Newspaper className="h-5 w-5 text-[#FFD60A]" />
+            Today&apos;s Career News
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="grid gap-4 lg:grid-cols-3">
+          {newsItems.length > 0 ? (
+            newsItems.map((item) => (
+              <div
+                key={`${item.headline}-${item.source}`}
+                className="rounded-2xl border border-white/10 bg-black/20 p-4"
+              >
+                <p className="text-xs uppercase tracking-wide text-[#FF6B35]">
+                  {item.category}
+                </p>
+                <p className="mt-2 font-medium text-white">{item.headline}</p>
+                <p className="mt-2 text-sm text-white/65">{item.summary}</p>
+              </div>
+            ))
+          ) : (
+            <p className="text-sm text-white/50">Loading today&apos;s student-focused updates...</p>
+          )}
+        </CardContent>
+      </Card>
+
+      <Card className="mb-8 rounded-2xl border-white/10 bg-[#12121F]">
+        <CardHeader>
+          <CardTitle className="font-display text-lg text-white">Upcoming Exam Countdown</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <ExamCountdown />
+        </CardContent>
+      </Card>
+
+      <div className="mb-8">
+        <div className="mb-4">
+          <h2 className="font-display text-2xl text-white">Recommended For You</h2>
+          <p className="text-sm text-white/55">
+            Four small next steps matched to your profile and recent activity.
+          </p>
+        </div>
+        <div className="grid gap-4 sm:grid-cols-2">
+          {recommendations.map((item, index) => (
+            <motion.div
+              key={`${item.type}-${item.title}`}
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: index * 0.06 }}
+            >
+              <Card className="h-full rounded-2xl border-white/10 bg-[#12121F]">
+                <CardContent className="flex h-full flex-col p-5">
+                  <div className="mb-3 flex items-start justify-between gap-3">
+                    <span className="text-3xl">{item.icon}</span>
+                    <span className="rounded-full border border-[#FFD60A]/30 bg-[#FFD60A]/10 px-2.5 py-1 text-xs text-[#FFD60A]">
+                      +{item.points} pts
+                    </span>
+                  </div>
+                  <p className="font-display text-lg text-white">{item.title}</p>
+                  <p className="mt-2 flex-1 text-sm text-white/65">{item.reason}</p>
+                  <Link
+                    href={item.actionUrl}
+                    className={cn(
+                      buttonVariants({ variant: "outline", size: "sm" }),
+                      "mt-4 rounded-lg border-[#FF6B35]/30 text-[#FF6B35]",
+                    )}
+                  >
+                    {item.action} →
+                  </Link>
+                </CardContent>
+              </Card>
+            </motion.div>
+          ))}
+        </div>
+      </div>
+
+      <Card className="mb-8 rounded-2xl border-white/10 bg-[#12121F]">
+        <CardHeader>
+          <CardTitle className="font-display text-lg text-white">
+            This Week: {weeklyChallenge.weekTheme}
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="flex items-center gap-3">
+            <span className="text-3xl">{weeklyChallenge.icon}</span>
+            <div className="flex-1">
+              <p className="text-sm text-white/65">
+                {challengeCompleted.length}/{weeklyChallenge.tasks.length} tasks complete
+              </p>
+              <div className="mt-2 h-2 overflow-hidden rounded-full bg-white/10">
+                <div
+                  className="h-full rounded-full bg-gradient-to-r from-[#FF6B35] to-[#FFD60A]"
+                  style={{
+                    width: `${(challengeCompleted.length / weeklyChallenge.tasks.length) * 100}%`,
+                  }}
+                />
+              </div>
+            </div>
+            <Link
+              href="/challenge"
+              className={cn(
+                buttonVariants({ variant: "outline", size: "sm" }),
+                "rounded-lg border-[#FF6B35]/30 text-[#FF6B35]",
+              )}
+            >
+              Continue →
+            </Link>
+          </div>
+        </CardContent>
+      </Card>
+
       <div className="mb-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {quickLinks.map((tile, idx) => (
           <motion.div
@@ -330,20 +507,15 @@ export default function DashboardPage() {
                   <Copy className="mr-2 h-4 w-4" />
                   {copied ? t("dashboard.shareParent.copied") : t("dashboard.shareParent.copy")}
                 </Button>
-                {whatsappHref ? (
-                  <Link
-                    href={whatsappHref}
-                    target="_blank"
-                    rel="noreferrer"
-                    className={cn(
-                      buttonVariants({ variant: "outline", size: "default" }),
-                      "rounded-lg border-emerald-500/40 text-emerald-200 hover:bg-emerald-500/10",
-                    )}
-                  >
-                    <MessageCircle className="mr-2 h-4 w-4" />
-                    {t("dashboard.shareParent.whatsapp")}
-                  </Link>
-                ) : null}
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="rounded-lg border-emerald-500/40 text-emerald-200 hover:bg-emerald-500/10"
+                  onClick={() => void shareParentLink()}
+                >
+                  <MessageCircle className="mr-2 h-4 w-4" />
+                  {t("dashboard.shareParent.whatsapp")}
+                </Button>
               </>
             ) : null}
           </div>

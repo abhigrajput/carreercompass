@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
+import { buildSignedHeaders } from "@/lib/client-api";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { saveStudentProfile } from "@/lib/student-storage";
@@ -31,6 +32,7 @@ export default function OnboardingPage() {
   const [submitting, setSubmitting] = useState(false);
   const [referralCode, setReferralCode] = useState("");
   const [schoolName, setSchoolName] = useState("");
+  const [website, setWebsite] = useState("");
 
   const baseProfile = (): StudentProfile => ({
     name: name.trim(),
@@ -46,21 +48,24 @@ export default function OnboardingPage() {
     profile: StudentProfile,
   ): Promise<StudentProfile> => {
     try {
+      const payload = {
+        ...profile,
+        school_name: profile.schoolName ?? null,
+        referred_by: referralCode.trim() || null,
+        website,
+      };
       const res = await fetch("/api/student", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          ...profile,
-          school_name: profile.schoolName ?? null,
-          referred_by: referralCode.trim() || null,
-        }),
+        headers: await buildSignedHeaders(payload),
+        body: JSON.stringify(payload),
       });
       const json = (await res.json()) as {
         student?: { id: string };
         ok?: boolean;
+        token?: string;
       };
       if (json.student?.id) {
-        return { ...profile, id: json.student.id };
+        return { ...profile, id: json.student.id, authToken: json.token ?? null };
       }
     } catch {
       /* offline */
@@ -120,6 +125,14 @@ export default function OnboardingPage() {
               transition={{ duration: 0.3 }}
               className="flex flex-1 flex-col space-y-4 rounded-2xl border border-white/10 bg-[#12121F] p-6 shadow-glow"
             >
+              <Input
+                name="website"
+                value={website}
+                onChange={(e) => setWebsite(e.target.value)}
+                tabIndex={-1}
+                autoComplete="off"
+                className="hidden"
+              />
               <label className="space-y-2 text-sm text-white/80">
                 <span>{t("onboarding.name")}</span>
                 <Input

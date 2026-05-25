@@ -1,11 +1,11 @@
-import { guardRateLimit, parseBody } from "@/lib/api-guard";
+import { guardRateLimit } from "@/lib/api-guard";
 import { containsProfanity } from "@/lib/security/profanity";
 import { clampPage } from "@/lib/security/url-sanitize";
+import { getAuthorizedStudentId } from "@/lib/server-auth";
 import { createServiceRoleClient } from "@/lib/supabase/admin";
 import {
   CommunityLikeSchema,
   CommunityPostSchema,
-  readJson,
 } from "@/lib/validation";
 
 const SEED = [
@@ -105,10 +105,27 @@ export async function POST(req: Request) {
   const limited = guardRateLimit(req, 20);
   if (limited) return limited;
 
-  const parsed = await parseBody(req, CommunityPostSchema);
-  if (parsed instanceof Response) return parsed;
+  let rawBody: unknown;
+  try {
+    rawBody = await req.json();
+  } catch {
+    return Response.json({ error: "Invalid JSON" }, { status: 400 });
+  }
 
-  const body = parsed.data;
+  const studentId = getAuthorizedStudentId(req, rawBody);
+  if (!studentId) {
+    return Response.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const parsed = CommunityPostSchema.safeParse(rawBody);
+  if (!parsed.success) {
+    return Response.json(
+      { error: "Validation failed", details: parsed.error.flatten() },
+      { status: 400 },
+    );
+  }
+
+  const body = { ...parsed.data, studentId };
 
   if (containsProfanity(body.content)) {
     return Response.json(
@@ -119,11 +136,14 @@ export async function POST(req: Request) {
 
   const admin = createServiceRoleClient();
   if (!admin) {
+    const displayName = body.isAnonymous
+      ? `Anonymous Student from ${body.student_city}`
+      : body.student_name;
     return Response.json({
       ok: true,
       post: {
         id: `local-${Date.now()}`,
-        student_name: body.student_name,
+        student_name: displayName,
         student_city: body.student_city,
         content: body.content,
         post_type: body.post_type,
@@ -133,6 +153,10 @@ export async function POST(req: Request) {
       },
     });
   }
+
+  const displayName = body.isAnonymous
+    ? `Anonymous Student from ${body.student_city}`
+    : body.student_name;
 
   if (body.studentId) {
     const hourAgo = new Date(Date.now() - 3600_000).toISOString();
@@ -155,7 +179,7 @@ export async function POST(req: Request) {
     .from("community_posts")
     .insert({
       student_id: body.studentId,
-      student_name: body.student_name,
+      student_name: displayName,
       student_city: body.student_city,
       content: body.content,
       post_type: body.post_type,
@@ -174,10 +198,27 @@ export async function PATCH(req: Request) {
   const limited = guardRateLimit(req, 60);
   if (limited) return limited;
 
-  const parsed = await readJson(req, CommunityLikeSchema);
-  if (!parsed.ok) return parsed.response;
+  let rawBody: unknown;
+  try {
+    rawBody = await req.json();
+  } catch {
+    return Response.json({ error: "Invalid JSON" }, { status: 400 });
+  }
 
-  const { postId, studentId } = parsed.data;
+  const studentId = getAuthorizedStudentId(req, rawBody);
+  if (!studentId) {
+    return Response.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const parsed = CommunityLikeSchema.safeParse(rawBody);
+  if (!parsed.success) {
+    return Response.json(
+      { error: "Validation failed", details: parsed.error.flatten() },
+      { status: 400 },
+    );
+  }
+
+  const { postId } = parsed.data;
 
   if (postId.startsWith("seed-")) {
     return Response.json({ likes: 1, liked: true });

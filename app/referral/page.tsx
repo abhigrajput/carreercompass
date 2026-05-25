@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { loadStudentProfile } from "@/lib/student-storage";
+import { shareContent } from "@/lib/share";
 import { Button } from "@/components/ui/button";
 
 export default function ReferralPage() {
@@ -15,7 +16,13 @@ export default function ReferralPage() {
     setTimeout(() => setCopied(false), 2000);
   };
 
-  const wa = "https://wa.me/?text=" + encodeURIComponent("Join CareerCompass with my code " + code + " — free career guide for Karnataka students!");
+  const shareReferral = async () => {
+    await shareContent(
+      "CareerCompass Referral",
+      `Join CareerCompass with my code ${code} — free career guide for Karnataka students!`,
+      "https://careercompass.vercel.app/referral",
+    );
+  };
 
   return (
     <div className="mx-auto max-w-lg px-4 pb-24 pt-24 text-center">
@@ -24,7 +31,7 @@ export default function ReferralPage() {
       <p className="mt-8 font-mono text-4xl font-bold text-[#FFD60A]">{code}</p>
       <div className="mt-6 flex flex-wrap justify-center gap-3">
         <Button type="button" onClick={() => void copy()} className="bg-[#FF6B35] text-[#080814]">{copied ? "Copied!" : "Copy code"}</Button>
-        <a href={wa} target="_blank" rel="noreferrer"><Button type="button" variant="outline" className="border-white/20 text-white">WhatsApp</Button></a>
+        <Button type="button" variant="outline" className="border-white/20 text-white" onClick={() => void shareReferral()}>Share</Button>
       </div>
       <ul className="mt-10 space-y-2 text-left text-sm text-white/70">
         <li>3 referrals → Community Builder badge + 200 pts</li>

@@ -3,6 +3,7 @@
 import dynamic from "next/dynamic";
 import { ServiceWorkerRegister } from "@/components/ServiceWorkerRegister";
 import { GlobalErrorReporter } from "@/components/GlobalErrorReporter";
+import { InstallPrompt } from "@/components/InstallPrompt";
 
 const BottomNav = dynamic(
   () => import("@/components/BottomNav").then((m) => m.BottomNav),
@@ -14,6 +15,7 @@ export function ClientShell({ children }: { children: React.ReactNode }) {
     <>
       <ServiceWorkerRegister />
       <GlobalErrorReporter />
+      <InstallPrompt />
       {children}
       <BottomNav />
     </>

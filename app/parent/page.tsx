@@ -1,12 +1,13 @@
 "use client";
 
-import { Suspense, useEffect, useMemo, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { useTranslation } from "react-i18next";
 import { MessageCircle } from "lucide-react";
 import i18n from "@/lib/i18n";
 import { buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { shareContent } from "@/lib/share";
 import { cn } from "@/lib/utils";
 
 type InterestRow = {
@@ -131,13 +132,14 @@ function ParentInner() {
 
   const shareUrl = pageUrl;
 
-  const whatsappFamilyHref = useMemo(() => {
-    if (!shareUrl) {
-      return "";
-    }
-    const text = `${studentName} ಅವರ CareerCompass ಪ್ರಗತಿ ನೋಡಿ: ${shareUrl}`;
-    return `https://wa.me/?text=${encodeURIComponent(text)}`;
-  }, [shareUrl, studentName]);
+  const shareFamily = async () => {
+    if (!shareUrl) return;
+    await shareContent(
+      "CareerCompass Parent Dashboard",
+      `${studentName} ಅವರ CareerCompass ಪ್ರಗತಿ ನೋಡಿ: ${shareUrl}`,
+      shareUrl,
+    );
+  };
 
   return (
     <div className="mx-auto max-w-4xl px-4 pb-16 pt-24 font-kannada">
@@ -183,11 +185,10 @@ function ParentInner() {
       {payload && !payload.demo && !invalid ? (
         <>
           <div className="mb-6 flex flex-wrap justify-center gap-3">
-            {whatsappFamilyHref ? (
-              <a
-                href={whatsappFamilyHref}
-                target="_blank"
-                rel="noreferrer"
+            {shareUrl ? (
+              <button
+                type="button"
+                onClick={() => void shareFamily()}
                 className={cn(
                   buttonVariants({ variant: "default", size: "default" }),
                   "rounded-xl bg-[#25D366] text-[#080814] hover:bg-[#1ebe57]",
@@ -195,7 +196,7 @@ function ParentInner() {
               >
                 <MessageCircle className="mr-2 h-4 w-4" />
                 {t("parent.shareFamily")}
-              </a>
+              </button>
             ) : null}
           </div>
 

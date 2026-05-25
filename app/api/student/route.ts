@@ -1,4 +1,5 @@
 import { guardRateLimit, parseBody } from "@/lib/api-guard";
+import { generateToken } from "@/lib/auth-token";
 import { clientIp } from "@/lib/rate-limit";
 import { createServiceRoleClient } from "@/lib/supabase/admin";
 import { mapCityForDb, StudentSchema } from "@/lib/validation";
@@ -12,6 +13,10 @@ export async function POST(req: Request) {
 
   try {
     const body = parsed.data;
+    if (body.website) {
+      return Response.json({ ok: true, persisted: false });
+    }
+
     const admin = createServiceRoleClient();
     if (!admin) {
       return Response.json({ ok: true, persisted: false });
@@ -24,12 +29,14 @@ export async function POST(req: Request) {
         .eq("auth_id", body.auth_id)
         .maybeSingle();
       if (existing) {
-        return Response.json({ ok: true, persisted: true, student: existing });
+        const token = generateToken(existing.id as string);
+        return Response.json({ ok: true, persisted: true, student: existing, token });
       }
     }
 
     const referralCode = body.referred_by ?? body.referral_code;
     const ip = clientIp(req);
+    const fingerprint = req.headers.get("x-device-fingerprint");
 
     if (referralCode) {
       const { count } = await admin
@@ -60,7 +67,7 @@ export async function POST(req: Request) {
 
       await admin.from("analytics_events").insert({
         event: "referral_attempt",
-        properties: { ip, referralCode },
+        properties: { ip, referralCode, fingerprint: fingerprint ?? "" },
       });
     }
 
@@ -96,7 +103,8 @@ export async function POST(req: Request) {
       }
     }
 
-    return Response.json({ ok: true, persisted: true, student: data });
+    const token = data?.id ? generateToken(data.id as string) : null;
+    return Response.json({ ok: true, persisted: true, student: data, token });
   } catch (e) {
     console.error(e);
     return Response.json({ ok: false }, { status: 500 });

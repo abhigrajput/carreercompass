@@ -6,6 +6,7 @@ import { Heart, MessageCircle } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { buildSignedHeaders } from "@/lib/client-api";
 import { loadStudentProfile } from "@/lib/student-storage";
 import { CAREERS } from "@/lib/careers";
 import { careerDisplayName } from "@/lib/career-utils";
@@ -40,6 +41,7 @@ export default function CommunityPage() {
   const [content, setContent] = useState("");
   const [ptype, setPtype] = useState("Question");
   const [careerTag, setCareerTag] = useState("");
+  const [isAnonymous, setIsAnonymous] = useState(false);
   const [toastMsg, setToastMsg] = useState<string | null>(null);
 
   useEffect(() => {
@@ -70,9 +72,27 @@ export default function CommunityPage() {
       window.setTimeout(() => setToastMsg(null), 2500);
       return;
     }
+    if (!profile?.authToken || !profile?.id) {
+      setToastMsg(t("community.loginLike"));
+      window.setTimeout(() => setToastMsg(null), 2500);
+      return;
+    }
     const res = await fetch("/api/community", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: await buildSignedHeaders({
+        studentId: profile?.id,
+        studentName: profile?.name ?? "Student",
+        studentCity:
+          profile?.city === "bengaluru"
+            ? "Bengaluru"
+            : profile?.city === "mysuru"
+              ? "Mysuru"
+              : "Hubballi",
+        content: content.trim(),
+        postType: ptype,
+        careerTag: careerTag || null,
+        isAnonymous,
+      }),
       body: JSON.stringify({
         studentId: profile?.id,
         studentName: profile?.name ?? "Student",
@@ -85,12 +105,14 @@ export default function CommunityPage() {
         content: content.trim(),
         postType: ptype,
         careerTag: careerTag || null,
+        isAnonymous,
       }),
     });
     const j = (await res.json()) as { post?: Post };
     if (j.post) {
       setPosts((p) => [j.post!, ...p]);
       setContent("");
+      setIsAnonymous(false);
       setToastMsg(t("community.posted"));
       window.setTimeout(() => setToastMsg(null), 2500);
     }
@@ -104,7 +126,7 @@ export default function CommunityPage() {
     }
     const res = await fetch("/api/community", {
       method: "PATCH",
-      headers: { "Content-Type": "application/json" },
+      headers: await buildSignedHeaders({ postId: post.id, studentId: profile.id }),
       body: JSON.stringify({ postId: post.id, studentId: profile.id }),
     });
     const j = (await res.json()) as { likes?: number; liked?: boolean };
@@ -126,6 +148,20 @@ export default function CommunityPage() {
       ) : null}
 
       <div className="mt-8 rounded-2xl border border-white/10 bg-[#12121F] p-4">
+        <div className="mb-3 flex items-center gap-3">
+          <span className="text-xs text-white/50">Post as:</span>
+          <button
+            type="button"
+            onClick={() => setIsAnonymous((current) => !current)}
+            className={`rounded-full border px-3 py-1 text-xs transition ${
+              isAnonymous
+                ? "border-[#FF6B35] bg-[#FF6B35]/10 text-[#FF6B35]"
+                : "border-white/20 text-white/60"
+            }`}
+          >
+            {isAnonymous ? "🎭 Anonymous" : `👤 ${profile?.name ?? "You"}`}
+          </button>
+        </div>
         <Textarea
           value={content}
           maxLength={280}
@@ -204,8 +240,16 @@ export default function CommunityPage() {
             className="rounded-2xl border border-white/10 bg-[#12121F] p-4"
           >
             <div className="flex items-start gap-3">
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#FF6B35]/30 text-sm font-bold text-white">
-                {p.student_name.slice(0, 1).toUpperCase()}
+              <div
+                className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-sm font-bold text-white ${
+                  p.student_name.toLowerCase().startsWith("anonymous")
+                    ? "bg-white/10"
+                    : "bg-[#FF6B35]/30"
+                }`}
+              >
+                {p.student_name.toLowerCase().startsWith("anonymous")
+                  ? "?"
+                  : p.student_name.slice(0, 1).toUpperCase()}
               </div>
               <div className="min-w-0 flex-1">
                 <div className="flex flex-wrap items-center gap-2 text-sm">

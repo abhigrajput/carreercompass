@@ -24,6 +24,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { shareContent } from "@/lib/share";
 import { cn } from "@/lib/utils";
 import {
   loadStudentProfile,
@@ -83,12 +84,6 @@ export default function ProfilePage() {
 
   const shareUrl = shareToken
     ? `${baseUrl}/parent?token=${encodeURIComponent(shareToken)}`
-    : null;
-
-  const whatsappHref = shareUrl
-    ? `https://wa.me/?text=${encodeURIComponent(
-        `CareerCompass — ಪಾಲಕರು ಈ ಲಿಂಕ್ ಮೂಲಕ ಪ್ರಗತಿ ನೋಡಬಹುದು: ${shareUrl}`,
-      )}`
     : null;
 
   useEffect(() => {
@@ -160,6 +155,15 @@ export default function ProfilePage() {
     } catch {
       setShareErr("Failed to copy.");
     }
+  };
+
+  const shareParentLink = async () => {
+    if (!shareUrl) return;
+    await shareContent(
+      "CareerCompass Parent Link",
+      `CareerCompass — ಪಾಲಕರು ಈ ಲಿಂಕ್ ಮೂಲಕ ಪ್ರಗತಿ ನೋಡಬಹುದು: ${shareUrl}`,
+      shareUrl,
+    );
   };
 
   if (profile === null && typeof window !== "undefined") {
@@ -538,17 +542,14 @@ export default function ProfilePage() {
                     <Copy className="mr-2 h-4 w-4" />
                     {copied ? "Copied!" : "Copy Link"}
                   </Button>
-                  {whatsappHref && (
-                    <Link
-                      href={whatsappHref}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="inline-flex items-center rounded-xl border border-emerald-500/40 px-4 py-2 text-sm text-emerald-200 hover:bg-emerald-500/10"
-                    >
-                      <MessageCircle className="mr-2 h-4 w-4" />
-                      WhatsApp Share
-                    </Link>
-                  )}
+                  <Button
+                    variant="outline"
+                    onClick={() => void shareParentLink()}
+                    className="rounded-xl border-emerald-500/40 text-emerald-200 hover:bg-emerald-500/10"
+                  >
+                    <MessageCircle className="mr-2 h-4 w-4" />
+                    WhatsApp Share
+                  </Button>
                 </>
               )}
             </div>

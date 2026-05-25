@@ -28,6 +28,12 @@ export function saveStudentProfile(profile: StudentProfile) {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
 }
 
+export function patchStudentProfile(patch: Partial<StudentProfile>) {
+  const current = loadStudentProfile();
+  if (!current) return;
+  saveStudentProfile({ ...current, ...patch });
+}
+
 export function clearStudentProfile() {
   if (typeof window === "undefined") {
     return;
@@ -39,4 +45,12 @@ export function getLanguageFromProfile(
   profile: StudentProfile | null,
 ): LocaleCode {
   return profile?.language ?? "en";
+}
+
+export function getStudentId(): string | null {
+  return loadStudentProfile()?.id ?? null;
+}
+
+export function getAuthToken(): string | null {
+  return loadStudentProfile()?.authToken ?? null;
 }

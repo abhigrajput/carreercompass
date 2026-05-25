@@ -25,7 +25,11 @@
     "community": "कम्युनिटी",
     "mentors": "मेंटर",
     "timetable": "स्टडी टाइमटेबल",
-    "skillGames": "स्किल गेम्स"
+    "studyTimer": "स्टडी टाइमर",
+    "skillGames": "स्किल गेम्स",
+    "compare": "करियर तुलना",
+    "mockInterview": "मॉक इंटरव्यू",
+    "news": "Career News"
   },
   "landing": {
     "hero": {

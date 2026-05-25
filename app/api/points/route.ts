@@ -1,11 +1,13 @@
-import { guardRateLimit, parseBody } from "@/lib/api-guard";
+import { guardRateLimit } from "@/lib/api-guard";
 import { clientIp } from "@/lib/rate-limit";
+import { getAuthorizedStudentId } from "@/lib/server-auth";
 import { createServiceRoleClient } from "@/lib/supabase/admin";
 import { PointsSchema } from "@/lib/validation";
 
 const POINT_VALUES: Record<string, number> = {
   explore_career: 5,
   complete_game: 20,
+  complete_pomodoro: 10,
   skill_game_correct: 10,
   chat_message: 3,
   generate_roadmap: 15,
@@ -22,11 +24,28 @@ export async function POST(req: Request) {
   const limited = guardRateLimit(req, 60);
   if (limited) return limited;
 
-  const parsed = await parseBody(req, PointsSchema);
-  if (parsed instanceof Response) return parsed;
+  let rawBody: unknown;
+  try {
+    rawBody = await req.json();
+  } catch {
+    return Response.json({ error: "Invalid JSON" }, { status: 400 });
+  }
+
+  const studentId = getAuthorizedStudentId(req, rawBody);
+  if (!studentId) {
+    return Response.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const parsed = PointsSchema.safeParse(rawBody);
+  if (!parsed.success) {
+    return Response.json(
+      { error: "Validation failed", details: parsed.error.flatten() },
+      { status: 400 },
+    );
+  }
 
   try {
-    const { studentId, action } = parsed.data;
+    const { action } = parsed.data;
     const add = POINT_VALUES[action] ?? 0;
     if (add <= 0) {
       return Response.json({ error: "unknown_action" }, { status: 400 });

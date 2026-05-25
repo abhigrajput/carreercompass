@@ -25,7 +25,11 @@
     "community": "Community",
     "mentors": "Mentors",
     "timetable": "Study Timetable",
-    "skillGames": "Skill Games"
+    "studyTimer": "Study Timer",
+    "skillGames": "Skill Games",
+    "compare": "Compare Careers",
+    "mockInterview": "Mock Interview",
+    "news": "Career News"
   },
   "landing": {
     "hero": {

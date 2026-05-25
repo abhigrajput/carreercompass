@@ -196,7 +196,10 @@ export function ChatInterface({ profile }: { profile: StudentProfile | null }) {
           messages: chatMessages,
           language,
           studentName: name,
+          studentClass: profile?.class,
           city: cityLabel(profile?.city),
+          personalityType: profile?.personalityType ?? undefined,
+          studentPoints: profile?.points ?? 0,
           careersDiscussed,
         }),
       });

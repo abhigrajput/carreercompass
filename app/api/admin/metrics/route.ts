@@ -1,13 +1,8 @@
 import { createServiceRoleClient } from "@/lib/supabase/admin";
-import { timingSafeEqual } from "@/lib/security/timing-safe";
+import { isAdminRequest } from "@/lib/admin-auth";
 
 export async function GET(req: Request) {
-  const auth = req.headers.get("authorization") ?? "";
-  const expected = process.env.ADMIN_PASSWORD ?? "careercompass2025";
-  const token = Buffer.from(`admin:${expected}`).toString("base64");
-  const bearer = auth.startsWith("Bearer ") ? auth.slice(7) : "";
-
-  if (!timingSafeEqual(bearer, token)) {
+  if (!isAdminRequest(req)) {
     return Response.json({ error: "Unauthorized" }, { status: 401 });
   }
 

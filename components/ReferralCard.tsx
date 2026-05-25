@@ -5,6 +5,7 @@ import { Copy, MessageCircle, Gift } from "lucide-react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { shareContent } from "@/lib/share";
 
 interface ReferralCardProps {
   code: string;
@@ -17,8 +18,6 @@ export function ReferralCard({ code, referralCount, bonusPoints }: ReferralCardP
 
   const shareText = `Join me on CareerCompass — India's first Kannada career guide! Use code ${code} at careercompass.vercel.app`;
 
-  const whatsappHref = `https://wa.me/?text=${encodeURIComponent(shareText)}`;
-
   const copyCode = async () => {
     try {
       await navigator.clipboard.writeText(code);
@@ -27,6 +26,14 @@ export function ReferralCard({ code, referralCount, bonusPoints }: ReferralCardP
     } catch {
       /* clipboard not available */
     }
+  };
+
+  const shareReferral = async () => {
+    await shareContent(
+      "CareerCompass Referral",
+      shareText,
+      "https://careercompass.vercel.app/referral",
+    );
   };
 
   return (
@@ -61,15 +68,14 @@ export function ReferralCard({ code, referralCount, bonusPoints }: ReferralCardP
             <Copy className="mr-2 h-4 w-4" />
             {copied ? "Copied!" : "Copy Code"}
           </Button>
-          <a
-            href={whatsappHref}
-            target="_blank"
-            rel="noreferrer"
+          <button
+            type="button"
+            onClick={() => void shareReferral()}
             className="inline-flex flex-1 items-center justify-center rounded-lg bg-[#25D366] px-4 py-2 text-sm font-medium text-[#080814] hover:bg-[#1ebe57]"
           >
             <MessageCircle className="mr-2 h-4 w-4" />
-            WhatsApp
-          </a>
+            Share
+          </button>
         </div>
 
         <p className="text-center text-sm text-white/60">

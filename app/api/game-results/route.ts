@@ -3,6 +3,7 @@ import {
   computeScore,
   consumeGameSession,
 } from "@/lib/security/game-sessions";
+import { getAuthorizedStudentId } from "@/lib/server-auth";
 import { createServiceRoleClient } from "@/lib/supabase/admin";
 import { GameResultLegacySchema, GameResultSchema } from "@/lib/validation";
 
@@ -15,6 +16,11 @@ export async function POST(req: Request) {
     body = await req.json();
   } catch {
     return Response.json({ error: "Invalid JSON" }, { status: 400 });
+  }
+
+  const authorizedStudentId = getAuthorizedStudentId(req, body);
+  if (!authorizedStudentId) {
+    return Response.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   const withToken = GameResultSchema.safeParse(body);
@@ -47,7 +53,7 @@ export async function POST(req: Request) {
     totalQuestions = data.totalQuestions;
     correctAnswers = Math.min(data.correctAnswers, totalQuestions);
     score = computeScore(correctAnswers, totalQuestions);
-    studentId = data.studentId;
+    studentId = authorizedStudentId;
     studentName = data.studentName;
     console.log("SECURITY FIX: Game score computed server-side from session token");
   } else if (legacy.success) {
@@ -62,7 +68,7 @@ export async function POST(req: Request) {
     totalQuestions = data.totalQuestions;
     correctAnswers = Math.min(data.correctAnswers, totalQuestions);
     score = computeScore(correctAnswers, totalQuestions);
-    studentId = data.studentId;
+    studentId = authorizedStudentId;
     studentName = data.studentName;
   } else {
     return Response.json({ error: "Validation failed" }, { status: 400 });

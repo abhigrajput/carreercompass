@@ -29,6 +29,10 @@ const mainLinks = [
 
 const toolsLinks = [
   { href: "/timetable", key: "timetable" as const },
+  { href: "/study-timer", key: "studyTimer" as const },
+  { href: "/compare", key: "compare" as const },
+  { href: "/mock-interview", key: "mockInterview" as const },
+  { href: "/news", key: "news" as const },
   { href: "/scholarships", key: "scholarships" as const },
   { href: "/exams", key: "exams" as const },
   { href: "/colleges", key: "colleges" as const },

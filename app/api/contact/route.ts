@@ -10,7 +10,10 @@ export async function POST(req: Request) {
   if (parsed instanceof Response) return parsed;
 
   try {
-    const { name, email, message, role } = parsed.data;
+    const { name, email, message, role, website } = parsed.data;
+    if (website) {
+      return Response.json({ ok: true, persisted: false });
+    }
 
     const supabase = createServiceRoleClient();
     if (!supabase) {

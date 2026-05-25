@@ -8,6 +8,7 @@ import { useTranslation } from "react-i18next";
 import { RoadmapTimeline } from "@/components/RoadmapTimeline";
 import { Button } from "@/components/ui/button";
 import { CAREERS } from "@/lib/careers";
+import { shareContent } from "@/lib/share";
 import { loadStudentProfile } from "@/lib/student-storage";
 import type { LocaleCode, RoadmapPayload } from "@/types";
 
@@ -81,7 +82,7 @@ function RoadmapInner() {
     return () => ctrl.abort();
   }, [career, lang, profile?.class, profile?.city, t]);
 
-  const shareWhatsApp = () => {
+  const shareWhatsApp = async () => {
     if (!data || !career) {
       return;
     }
@@ -91,7 +92,7 @@ function RoadmapInner() {
     const roadmapUrl = `${baseUrl}/roadmap?career=${encodeURIComponent(career.id)}`;
     const studentName = profile?.name ?? "Student";
     const text = `CareerCompass ನಲ್ಲಿ ${studentName} ಅವರ ವೃತ್ತಿ ಯೋಜನೆ: ${career.name}. 90-ದಿನದ ರೋಡ್‌ಮ್ಯಾಪ್ ನೋಡಲು: ${roadmapUrl}`;
-    window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, "_blank");
+    await shareContent("CareerCompass Roadmap", text, roadmapUrl);
   };
 
   const printPdf = () => {
@@ -127,7 +128,7 @@ function RoadmapInner() {
             type="button"
             variant="outline"
             className="rounded-xl border-white/15 bg-white/5 text-white hover:bg-white/10"
-            onClick={shareWhatsApp}
+            onClick={() => void shareWhatsApp()}
             disabled={!data}
           >
             <Share2 className="mr-2 h-4 w-4" />
