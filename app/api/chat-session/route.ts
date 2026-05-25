@@ -1,13 +1,16 @@
+import { guardRateLimit, parseBody } from "@/lib/api-guard";
 import { createServiceRoleClient } from "@/lib/supabase/admin";
+import { ChatSessionSchema } from "@/lib/validation";
 
 export async function POST(req: Request) {
+  const limited = guardRateLimit(req, 20);
+  if (limited) return limited;
+
+  const parsed = await parseBody(req, ChatSessionSchema);
+  if (parsed instanceof Response) return parsed;
+
   try {
-    const body = (await req.json()) as {
-      messages?: unknown;
-      studentName?: string;
-      language?: string;
-      studentId?: string | null;
-    };
+    const body = parsed.data;
 
     const admin = createServiceRoleClient();
     if (!admin) {

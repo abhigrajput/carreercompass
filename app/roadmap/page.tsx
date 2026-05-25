@@ -14,7 +14,8 @@ import type { LocaleCode, RoadmapPayload } from "@/types";
 function RoadmapInner() {
   const { t, i18n } = useTranslation("common");
   const params = useSearchParams();
-  const careerId = params.get("career") ?? "";
+  const rawCareer = params.get("career") ?? "";
+  const careerId = rawCareer.replace(/[^a-z0-9-_]/gi, "").slice(0, 100);
   const profile = loadStudentProfile();
   const lang = (profile?.language ??
     (i18n.language as LocaleCode) ??

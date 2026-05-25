@@ -1,20 +1,16 @@
+import { guardRateLimit, parseBody } from "@/lib/api-guard";
 import { createServiceRoleClient } from "@/lib/supabase/admin";
+import { ContactSchema } from "@/lib/validation";
 
 export async function POST(req: Request) {
-  try {
-    const { name, email, message, role } = (await req.json()) as {
-      name: string;
-      email: string;
-      message: string;
-      role: string;
-    };
+  const limited = guardRateLimit(req, 5);
+  if (limited) return limited;
 
-    if (!name || !email || !message) {
-      return Response.json(
-        { ok: false, error: "Missing required fields" },
-        { status: 400 },
-      );
-    }
+  const parsed = await parseBody(req, ContactSchema);
+  if (parsed instanceof Response) return parsed;
+
+  try {
+    const { name, email, message, role } = parsed.data;
 
     const supabase = createServiceRoleClient();
     if (!supabase) {

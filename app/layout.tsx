@@ -6,7 +6,6 @@ import { cn } from "@/lib/utils";
 import { AppProviders } from "@/components/AppProviders";
 import { ConditionalNavbar } from "@/components/ConditionalNavbar";
 import { ClientShell } from "@/components/ClientShell";
-
 const syne = Syne({
   subsets: ["latin"],
   variable: "--font-syne",

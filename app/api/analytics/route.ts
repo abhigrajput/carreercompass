@@ -1,17 +1,16 @@
+import { guardRateLimit, parseBody } from "@/lib/api-guard";
 import { createServiceRoleClient } from "@/lib/supabase/admin";
+import { AnalyticsSchema } from "@/lib/validation";
 
 export async function POST(req: Request) {
-  try {
-    const body = (await req.json()) as {
-      event?: string;
-      properties?: Record<string, unknown>;
-      studentId?: string;
-      timestamp?: string;
-    };
+  const limited = guardRateLimit(req, 60);
+  if (limited) return limited;
 
-    if (!body.event) {
-      return Response.json({ error: "event required" }, { status: 400 });
-    }
+  const parsed = await parseBody(req, AnalyticsSchema);
+  if (parsed instanceof Response) return parsed;
+
+  try {
+    const body = parsed.data;
 
     const admin = createServiceRoleClient();
     if (admin) {

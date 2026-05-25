@@ -1,6 +1,9 @@
 import { askDeepSeek } from "@/lib/deepseek";
+import { guardRateLimit, parseBody } from "@/lib/api-guard";
+import { sanitizeUserText } from "@/lib/security/prompt-guard";
 import { createServiceRoleClient } from "@/lib/supabase/admin";
 import type { TimetablePayload } from "@/lib/timetable-types";
+import { TimetableSchema } from "@/lib/validation";
 
 function parseTimetableJson(raw: string): TimetablePayload | null {
   const start = raw.indexOf("{");
@@ -18,36 +21,30 @@ function parseTimetableJson(raw: string): TimetablePayload | null {
 }
 
 export async function POST(req: Request) {
-  try {
-    const body = (await req.json()) as {
-      careerId: string;
-      careerLabel: string;
-      examName: string;
-      examDate: string;
-      hoursPerDay: number;
-      weakSubjects: string[];
-      strongSubjects: string[];
-      studentId?: string | null;
-    };
+  const limited = guardRateLimit(req, 8);
+  if (limited) return limited;
 
-    const {
+  const parsed = await parseBody(req, TimetableSchema);
+  if (parsed instanceof Response) return parsed;
+
+  try {
+    const body = parsed.data;
+    const careerLabel = sanitizeUserText(body.careerLabel ?? body.careerId, 120);
+    const examName = sanitizeUserText(body.examName, 40);
+    const examDate = body.examDate;
+    const { hoursPerDay, weakSubjects, strongSubjects, careerId, studentId } = body;
+
+    const fallbackInput = {
       careerLabel,
       examName,
-      examDate,
       hoursPerDay,
       weakSubjects,
       strongSubjects,
-      careerId,
-      studentId,
-    } = body;
-
-    if (!careerLabel || !examName || !examDate) {
-      return Response.json({ error: "Missing required fields" }, { status: 400 });
-    }
+    };
 
     if (!process.env.DEEPSEEK_API_KEY) {
       return Response.json(
-        { error: "AI not configured", timetable: fallbackTimetable(body) },
+        { error: "AI not configured", timetable: fallbackTimetable(fallbackInput) },
         { status: 200 },
       );
     }
@@ -67,7 +64,7 @@ Include 2 weeks minimum, Monday–Sunday each week, realistic Karnataka board + 
       "You output only compact JSON for study timetables.",
     );
 
-    const timetable = parseTimetableJson(raw) ?? fallbackTimetable(body);
+    const timetable = parseTimetableJson(raw) ?? fallbackTimetable(fallbackInput);
 
     const admin = createServiceRoleClient();
     if (admin && studentId) {

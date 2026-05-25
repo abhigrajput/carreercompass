@@ -40,9 +40,17 @@ export default function SkillGamesPage() {
   const params = useSearchParams();
   const profile = loadStudentProfile();
 
-  const challengeGame = params.get("challenge") as SkillGameId | null;
-  const challengeScore = Number(params.get("score") ?? "0");
-  const challengeName = params.get("name") ?? "Friend";
+  const rawChallenge = params.get("challenge") ?? "";
+  const challengeSlug = rawChallenge.replace(/[^a-z0-9-_]/gi, "").slice(0, 50);
+  const challengeGame = challengeSlug
+    ? (challengeSlug as SkillGameId)
+    : null;
+  const rawScore = parseInt(params.get("score") ?? "0", 10);
+  const challengeScore = Number.isNaN(rawScore)
+    ? 0
+    : Math.max(0, Math.min(100, rawScore));
+  const rawName = params.get("name") ?? "Friend";
+  const challengeName = rawName.replace(/[<>"']/g, "").slice(0, 100) || "Friend";
 
   const [phase, setPhase] = useState<Phase>("pick");
   const [gameId, setGameId] = useState<SkillGameId | null>(null);

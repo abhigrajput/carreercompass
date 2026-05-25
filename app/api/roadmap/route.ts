@@ -1,32 +1,31 @@
 import { askDeepSeek } from "@/lib/deepseek";
-import type { LocaleCode, RoadmapPayload, RoadmapPhase } from "@/types";
+import { guardRateLimit, parseBody } from "@/lib/api-guard";
+import { sanitizeUserText } from "@/lib/security/prompt-guard";
+import { RoadmapSchema } from "@/lib/validation";
+import type { RoadmapPayload, RoadmapPhase } from "@/types";
 
 export async function POST(req: Request) {
   if (!process.env.DEEPSEEK_API_KEY) {
     return Response.json({ error: "API key not configured" }, { status: 500 });
   }
 
+  const limited = guardRateLimit(req, 8);
+  if (limited) return limited;
+
+  const parsed = await parseBody(req, RoadmapSchema);
+  if (parsed instanceof Response) return parsed;
+
   try {
-    const body = (await req.json()) as {
-      career?: { id: string; name: string; domain: string };
-      studentClass?: "10" | "11" | "12";
-      city?: string;
-      language?: LocaleCode;
-    };
-
-    if (!body.career?.name) {
-      return Response.json({ error: "Invalid body" }, { status: 400 });
-    }
-
-    const career = body.career;
-    const studentClass = body.studentClass ?? "10";
-    const city = body.city ?? "bengaluru";
-    const lang = body.language ?? "en";
+    const { career, studentClass = "10", city = "bengaluru", language: lang = "en" } =
+      parsed.data;
 
     const langLabel =
       lang === "kn" ? "Kannada" : lang === "hi" ? "Hindi" : "English";
 
-    const prompt = `Create a structured 90‑day roadmap JSON for a Karnataka student in class ${studentClass} living in/near ${city}, aiming for career "${career.name}" (${career.domain}).
+    const safeName = sanitizeUserText(career.name, 120);
+    const safeDomain = sanitizeUserText(career.domain, 80);
+
+    const prompt = `Create a structured 90‑day roadmap JSON for a Karnataka student in class ${studentClass} living in/near ${city}, aiming for career "${safeName}" (${safeDomain}).
 Respond ONLY with compact JSON matching this TypeScript shape:
 {
   "headline": string,

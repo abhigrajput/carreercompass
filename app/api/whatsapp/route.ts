@@ -1,25 +1,19 @@
+import { guardRateLimit, parseBody } from "@/lib/api-guard";
+import { WhatsAppShareSchema } from "@/lib/validation";
+
 const BASE =
   process.env.NEXT_PUBLIC_APP_URL?.replace(/\/$/, "") ??
   "https://careercompass.vercel.app";
 
 export async function POST(req: Request) {
-  const body = (await req.json()) as {
-    type?: "game" | "roadmap" | "challenge";
-    personalityType?: string;
-    careerName?: string;
-    salary?: string;
-    score?: number;
-    total?: number;
-    studentName?: string;
-    examName?: string;
-    collegeName?: string;
-    link?: string;
-    challengeCode?: string;
-    points?: number;
-    gameName?: string;
-  };
+  const limited = guardRateLimit(req, 20);
+  if (limited) return limited;
 
-  const type = body.type ?? "game";
+  const parsed = await parseBody(req, WhatsAppShareSchema);
+  if (parsed instanceof Response) return parsed;
+
+  const body = parsed.data;
+  const type = body.type;
   let text = "";
 
   if (type === "game") {
@@ -38,22 +32,22 @@ ${BASE}/games
 *${body.studentName ?? "Student"}* ಅವರು CareerCompass ಮೂಲಕ ತಮ್ಮ ವೃತ್ತಿ ಗುರಿ ಕಂಡುಕೊಂಡಿದ್ದಾರೆ:
 
 🎯 ಗುರಿ: *${body.careerName ?? "Career"}*
-📚 ತಯಾರಿ ಪರೀಕ್ಷೆ: *${body.examName ?? "CET/NEET"}*
-🏛️ ಆದರ್ಶ ಕಾಲೇಜು: *${body.collegeName ?? "Karnataka college"}*
+📅 90-ದಿನದ ಯೋಜನೆ: ${body.link ?? `${BASE}/roadmap`}
 
-90-ದಿನದ ರೋಡ್‌ಮ್ಯಾಪ್ ನೋಡಲು:
-${body.link ?? `${BASE}/roadmap`}`;
+🆓 ಉಚಿತ ವೃತ್ತಿ ಮಾರ್ಗದರ್ಶಿ:
+${BASE}`;
   } else {
-    text = `🎮 Challenge accepted?
+    text = `🏆 ${body.gameName ?? "Skill challenge"} on CareerCompass!
 
-I scored *${body.points ?? 0} points* in the ${body.gameName ?? "Career"} skill game on CareerCompass!
+${body.studentName ?? "I"} scored ${body.points ?? 0} points!
+Challenge code: ${body.challengeCode ?? "PLAY"}
 
-Can you beat me?
-👉 ${body.link ?? `${BASE}/skill-games?challenge=${body.challengeCode ?? "play"}`}
-
-#CareerCompass #Karnataka #CareerGoals`;
+Play here: ${body.link ?? `${BASE}/skill-games`}`;
   }
 
-  const waUrl = `https://wa.me/?text=${encodeURIComponent(text)}`;
-  return Response.json({ text, waUrl });
+  const encoded = encodeURIComponent(text);
+  return Response.json({
+    url: `https://wa.me/?text=${encoded}`,
+    text,
+  });
 }

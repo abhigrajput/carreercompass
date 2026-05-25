@@ -107,7 +107,8 @@ export default function ExplorePage() {
   };
 
   useEffect(() => {
-    const id = searchParams.get("career");
+    const raw = searchParams.get("career") ?? "";
+    const id = raw.replace(/[^a-z0-9-_]/gi, "").slice(0, 100);
     if (!id) return;
     const c = CAREERS.find((x) => x.id === id);
     if (c) {

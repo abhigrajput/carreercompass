@@ -1,8 +1,16 @@
-export async function POST(req: Request) {
-  const { password } = (await req.json()) as { password?: string };
-  const expected = process.env.ADMIN_PASSWORD ?? "careercompass2025";
+import { parseBody } from "@/lib/api-guard";
+import { timingSafeEqual } from "@/lib/security/timing-safe";
+import { AdminAuthSchema } from "@/lib/validation";
 
-  if (!password || password !== expected) {
+export async function POST(req: Request) {
+  const parsed = await parseBody(req, AdminAuthSchema);
+  if (parsed instanceof Response) return parsed;
+
+  const expected = process.env.ADMIN_PASSWORD ?? "careercompass2025";
+  const { password } = parsed.data;
+
+  if (!timingSafeEqual(password, expected)) {
+    console.log("SECURITY FIX: Admin auth failed (timing-safe compare)");
     return Response.json({ ok: false }, { status: 401 });
   }
 

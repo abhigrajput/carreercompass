@@ -1,4 +1,7 @@
+import { guardRateLimit, parseBody } from "@/lib/api-guard";
+import { clientIp } from "@/lib/rate-limit";
 import { createServiceRoleClient } from "@/lib/supabase/admin";
+import { PointsSchema } from "@/lib/validation";
 
 const POINT_VALUES: Record<string, number> = {
   explore_career: 5,
@@ -16,31 +19,46 @@ const POINT_VALUES: Record<string, number> = {
 };
 
 export async function POST(req: Request) {
-  try {
-    const body = (await req.json()) as {
-      studentId?: string;
-      action?: string;
-      points?: number;
-    };
-    const { studentId, action } = body;
-    const override = body.points;
-    if (!studentId || !action) {
-      return Response.json({ error: "studentId and action required" }, { status: 400 });
-    }
+  const limited = guardRateLimit(req, 60);
+  if (limited) return limited;
 
-    const add =
-      typeof override === "number" && override > 0
-        ? override
-        : POINT_VALUES[action] ?? 0;
+  const parsed = await parseBody(req, PointsSchema);
+  if (parsed instanceof Response) return parsed;
+
+  try {
+    const { studentId, action } = parsed.data;
+    const add = POINT_VALUES[action] ?? 0;
     if (add <= 0) {
       return Response.json({ error: "unknown_action" }, { status: 400 });
     }
+
+    const idempotencyKey = `${studentId}_${action}_${new Date().toISOString().slice(0, 10)}`;
 
     const admin = createServiceRoleClient();
     if (!admin) {
       return Response.json({
         newTotal: add,
         badgesAwarded: [] as string[],
+        levelUp: false,
+      });
+    }
+
+    const { data: existing } = await admin
+      .from("analytics_events")
+      .select("id")
+      .eq("idempotency_key", idempotencyKey)
+      .maybeSingle();
+
+    if (existing?.id) {
+      const { data: st } = await admin
+        .from("students")
+        .select("points, badges")
+        .eq("id", studentId)
+        .maybeSingle();
+      return Response.json({
+        message: "Already awarded today",
+        newTotal: (st?.points as number) ?? 0,
+        badgesAwarded: [],
         levelUp: false,
       });
     }
@@ -70,6 +88,13 @@ export async function POST(req: Request) {
       .update({ points: newTotal, badges })
       .eq("id", studentId);
 
+    await admin.from("analytics_events").insert({
+      event: "points_awarded",
+      student_id: studentId,
+      idempotency_key: idempotencyKey,
+      properties: { action, points: add, ip: clientIp(req) },
+    });
+
     try {
       const { data: lb } = await admin
         .from("leaderboard")
@@ -93,9 +118,10 @@ export async function POST(req: Request) {
         });
       }
     } catch {
-      /* */
+      /* leaderboard optional */
     }
 
+    console.log("SECURITY FIX: Points idempotency enforced for", action);
     return Response.json({ newTotal, badgesAwarded, levelUp });
   } catch (e) {
     console.error(e);

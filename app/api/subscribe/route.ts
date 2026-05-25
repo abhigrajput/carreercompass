@@ -1,26 +1,25 @@
+import { guardRateLimit, parseBody } from "@/lib/api-guard";
 import { createServiceRoleClient } from "@/lib/supabase/admin";
+import { SubscribeSchema } from "@/lib/validation";
 
 export async function POST(req: Request) {
-  try {
-    const body = (await req.json()) as {
-      name?: string;
-      email?: string;
-      language?: string;
-      source?: string;
-    };
+  const limited = guardRateLimit(req, 10);
+  if (limited) return limited;
 
-    if (!body.email?.includes("@")) {
-      return Response.json({ error: "Invalid email" }, { status: 400 });
-    }
+  const parsed = await parseBody(req, SubscribeSchema);
+  if (parsed instanceof Response) return parsed;
+
+  try {
+    const { name, email, language, source } = parsed.data;
 
     const admin = createServiceRoleClient();
     if (admin) {
       await admin.from("email_subscribers").upsert(
         {
-          name: body.name ?? null,
-          email: body.email.toLowerCase().trim(),
-          language: body.language ?? "en",
-          source: body.source ?? "landing_page",
+          name: name ?? null,
+          email: email.toLowerCase().trim(),
+          language,
+          source: source ?? "landing_page",
           subscribed: true,
         },
         { onConflict: "email" },

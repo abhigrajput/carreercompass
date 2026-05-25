@@ -1,4 +1,6 @@
+import { guardRateLimit, parseBody } from "@/lib/api-guard";
 import { createServiceRoleClient } from "@/lib/supabase/admin";
+import { StreakSchema } from "@/lib/validation";
 
 function todayUTC(): string {
   return new Date().toISOString().slice(0, 10);
@@ -11,11 +13,14 @@ function yesterdayUTC(): string {
 }
 
 export async function POST(req: Request) {
+  const limited = guardRateLimit(req, 30);
+  if (limited) return limited;
+
+  const parsed = await parseBody(req, StreakSchema);
+  if (parsed instanceof Response) return parsed;
+
   try {
-    const { studentId } = (await req.json()) as { studentId?: string };
-    if (!studentId) {
-      return Response.json({ error: "studentId required" }, { status: 400 });
-    }
+    const { studentId } = parsed.data;
 
     const admin = createServiceRoleClient();
     if (!admin) {

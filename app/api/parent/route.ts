@@ -1,8 +1,14 @@
+import { guardRateLimit, parseBody } from "@/lib/api-guard";
+import { sanitizeToken } from "@/lib/security/url-sanitize";
 import { createServiceRoleClient } from "@/lib/supabase/admin";
+import { ParentTokenSchema } from "@/lib/validation";
 
 export async function GET(req: Request) {
+  const limited = guardRateLimit(req, 30);
+  if (limited) return limited;
+
   const { searchParams } = new URL(req.url);
-  const token = searchParams.get("token");
+  const token = sanitizeToken(searchParams.get("token"));
   if (!token) {
     return Response.json({ error: "missing_token" }, { status: 400 });
   }
@@ -66,9 +72,15 @@ export async function GET(req: Request) {
 }
 
 export async function POST(req: Request) {
+  const limited = guardRateLimit(req, 10);
+  if (limited) return limited;
+
+  const parsed = await parseBody(req, ParentTokenSchema);
+  if (parsed instanceof Response) return parsed;
+
   try {
-    const body = (await req.json()) as { studentId?: string };
-    if (!body.studentId) {
+    const { studentId } = parsed.data;
+    if (!studentId) {
       return Response.json({ error: "studentId required" }, { status: 400 });
     }
 
@@ -82,7 +94,7 @@ export async function POST(req: Request) {
 
     const { data, error } = await admin
       .from("parent_links")
-      .insert({ student_id: body.studentId })
+      .insert({ student_id: studentId })
       .select("share_token")
       .maybeSingle();
 

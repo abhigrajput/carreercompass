@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useTranslation } from "react-i18next";
 import { Button, buttonVariants } from "@/components/ui/button";
@@ -33,6 +33,25 @@ export function GameEngine({
   const [picked, setPicked] = useState<number | null>(null);
   const [saving, setSaving] = useState(false);
   const [saveNote, setSaveNote] = useState<string | null>(null);
+  const gameTokenRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    void fetch("/api/game-start", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        domain: career.domain,
+        studentId: profile?.id ?? null,
+      }),
+    })
+      .then((r) => r.json())
+      .then((d: { gameToken?: string }) => {
+        if (d.gameToken) gameTokenRef.current = d.gameToken;
+      })
+      .catch(() => {
+        /* offline — results may not persist */
+      });
+  }, [career.domain, profile?.id]);
 
   const question = pack.questions[idx];
   const total = pack.questions.length;
@@ -42,17 +61,20 @@ export function GameEngine({
     async (finalScore: number, correctCount: number) => {
       setSaving(true);
       try {
+        const payload: Record<string, unknown> = {
+          studentId: profile?.id ?? null,
+          studentName: profile?.name,
+          careerDomain: career.domain,
+          totalQuestions: total,
+          correctAnswers: correctCount,
+        };
+        if (gameTokenRef.current) {
+          payload.gameToken = gameTokenRef.current;
+        }
         await fetch("/api/game-results", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            studentId: profile?.id ?? null,
-            studentName: profile?.name,
-            careerDomain: career.domain,
-            score: Math.round((correctCount / total) * 100),
-            totalQuestions: total,
-            correctAnswers: correctCount,
-          }),
+          body: JSON.stringify(payload),
         });
         setSaveNote("saved");
       } catch {

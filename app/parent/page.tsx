@@ -63,7 +63,8 @@ function roadmapPreview(data: unknown): string {
 function ParentInner() {
   const { t } = useTranslation("common");
   const params = useSearchParams();
-  const token = params.get("token") ?? "";
+  const rawToken = params.get("token") ?? "";
+  const token = rawToken.replace(/[^a-zA-Z0-9-_]/g, "").slice(0, 100);
 
   const [loading, setLoading] = useState(!!token);
   const [invalid, setInvalid] = useState(false);

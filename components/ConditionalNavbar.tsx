@@ -1,7 +1,12 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import { usePathname } from "next/navigation";
-import { Navbar } from "@/components/Navbar";
+
+const Navbar = dynamic(
+  () => import("@/components/Navbar").then((m) => m.Navbar),
+  { ssr: false },
+);
 
 const HIDDEN_ROUTES = ["/onboarding", "/auth"];
 

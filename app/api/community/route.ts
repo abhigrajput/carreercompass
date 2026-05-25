@@ -1,4 +1,12 @@
+import { guardRateLimit, parseBody } from "@/lib/api-guard";
+import { containsProfanity } from "@/lib/security/profanity";
+import { clampPage } from "@/lib/security/url-sanitize";
 import { createServiceRoleClient } from "@/lib/supabase/admin";
+import {
+  CommunityLikeSchema,
+  CommunityPostSchema,
+  readJson,
+} from "@/lib/validation";
 
 const SEED = [
   {
@@ -58,9 +66,11 @@ const SEED = [
   },
 ];
 
+const HOURLY_POST_LIMIT = 10;
+
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
-  const page = Math.max(1, Number(searchParams.get("page") ?? "1"));
+  const page = clampPage(searchParams.get("page"));
   const per = 20;
   const admin = createServiceRoleClient();
 
@@ -92,17 +102,19 @@ export async function GET(req: Request) {
 }
 
 export async function POST(req: Request) {
-  const body = (await req.json()) as {
-    studentId?: string;
-    studentName: string;
-    studentCity: string;
-    content: string;
-    postType: string;
-    careerTag?: string | null;
-  };
+  const limited = guardRateLimit(req, 20);
+  if (limited) return limited;
 
-  if (!body.content || body.content.length > 280) {
-    return Response.json({ error: "invalid_content" }, { status: 400 });
+  const parsed = await parseBody(req, CommunityPostSchema);
+  if (parsed instanceof Response) return parsed;
+
+  const body = parsed.data;
+
+  if (containsProfanity(body.content)) {
+    return Response.json(
+      { error: "Content violates community guidelines" },
+      { status: 400 },
+    );
   }
 
   const admin = createServiceRoleClient();
@@ -111,22 +123,43 @@ export async function POST(req: Request) {
       ok: true,
       post: {
         id: `local-${Date.now()}`,
-        ...body,
+        student_name: body.student_name,
+        student_city: body.student_city,
+        content: body.content,
+        post_type: body.post_type,
+        career_tag: body.career_tag,
         likes: 0,
         created_at: new Date().toISOString(),
       },
     });
   }
 
+  if (body.studentId) {
+    const hourAgo = new Date(Date.now() - 3600_000).toISOString();
+    const { count } = await admin
+      .from("community_posts")
+      .select("id", { count: "exact", head: true })
+      .eq("student_id", body.studentId)
+      .gte("created_at", hourAgo);
+
+    if ((count ?? 0) >= HOURLY_POST_LIMIT) {
+      console.log("SECURITY FIX: Community post hourly limit enforced");
+      return Response.json(
+        { error: "Post limit reached. Try again in an hour." },
+        { status: 429 },
+      );
+    }
+  }
+
   const { data, error } = await admin
     .from("community_posts")
     .insert({
-      student_id: body.studentId ?? null,
-      student_name: body.studentName,
-      student_city: body.studentCity,
+      student_id: body.studentId,
+      student_name: body.student_name,
+      student_city: body.student_city,
       content: body.content,
-      post_type: body.postType,
-      career_tag: body.careerTag ?? null,
+      post_type: body.post_type,
+      career_tag: body.career_tag,
     })
     .select()
     .maybeSingle();
@@ -138,13 +171,14 @@ export async function POST(req: Request) {
 }
 
 export async function PATCH(req: Request) {
-  const { postId, studentId } = (await req.json()) as {
-    postId?: string;
-    studentId?: string;
-  };
-  if (!postId || !studentId) {
-    return Response.json({ error: "missing" }, { status: 400 });
-  }
+  const limited = guardRateLimit(req, 60);
+  if (limited) return limited;
+
+  const parsed = await readJson(req, CommunityLikeSchema);
+  if (!parsed.ok) return parsed.response;
+
+  const { postId, studentId } = parsed.data;
+
   if (postId.startsWith("seed-")) {
     return Response.json({ likes: 1, liked: true });
   }
